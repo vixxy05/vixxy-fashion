@@ -1,0 +1,19 @@
+{
+  "name": "vixxy-dorance",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VIXXY D'ORANCE — E-commerce platform monorepo",
+  "scripts": {
+    "dev:store": "npm run dev --prefix vixxy-store",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:admin": "npm run dev --prefix admin",
+    "build:store": "npm run build --prefix vixxy-store",
+    "build:backend": "npm run build:prod --prefix backend",
+    "build:admin": "npm run build --prefix admin",
+    "build:all": "npm run build:backend && npm run build:store && npm run build:admin",
+    "install:all": "npm install --prefix backend && npm install --prefix vixxy-store && npm install --prefix admin"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

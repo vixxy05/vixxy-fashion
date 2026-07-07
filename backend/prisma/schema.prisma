@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id             Int              @id @default(autoincrement())
+  roleName       String           @unique
+  description    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  userRoles      UserRole[]
+  rolePermissions RolePermission[]
+}
+
+model User {
+  id                  Int              @id @default(autoincrement())
+  email               String           @unique
+  phone               String?          @unique
+  username            String?          @unique
+  passwordHash        String
+  fullName            String
+  avatar              String?
+  birthday            DateTime?
+  gender              String? // "male", "female", "other"
+  address             String?
+  status              String           @default("active") // "active", "inactive", "banned"
+  emailVerified       Boolean          @default(false)
+  phoneVerified       Boolean          @default(false)
+  failedLoginAttempts Int              @default(0)
+  lockedAt            DateTime?
+  lockoutExpiresAt    DateTime?
+  lastLoginAt         DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  userRoles           UserRole[]
+  refreshTokens       RefreshToken[]
+  resetTokens         ResetToken[]
+  loginHistory        LoginHistory[]
+  auditLogs           AuditLog[]
+  orders              Order[]
+}
+
+model Permission {
+  id             Int              @id @default(autoincrement())
+  permissionCode String           @unique
+  permissionName String
+  description    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  rolePermissions RolePermission[]
+}
+
+model UserRole {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  roleId    Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@unique([userId, roleId], name: "uk_user_role")
+  @@index([userId], name: "idx_user_roles_user")
+  @@index([roleId], name: "idx_user_roles_role")
+}
+
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  createdAt    DateTime   @default(now())
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@unique([roleId, permissionId], name: "uk_role_permission")
+  @@index([roleId], name: "idx_role_permissions_role")
+  @@index([permissionId], name: "idx_role_permissions_permission")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@index([token], name: "idx_refresh_token")
+  @@index([userId], name: "idx_refresh_user")
+  @@index([expiresAt], name: "idx_refresh_expires")
+}
+
+model ResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@index([token], name: "idx_reset_token")
+  @@index([userId], name: "idx_reset_user")
+  @@index([expiresAt], name: "idx_reset_expires")
+}
+
+model LoginHistory {
+  id            Int       @id @default(autoincrement())
+  userId        Int?
+  ipAddress     String?
+  deviceInfo    String?
+  browserInfo   String?
+  loginAt       DateTime  @default(now())
+  success       Boolean   @default(true)
+  failureReason String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  @@index([userId], name: "idx_login_user")
+  @@index([loginAt], name: "idx_login_time")
+  @@index([success], name: "idx_login_success")
+}
+
+model AuditLog {
+  id           Int        @id @default(autoincrement())
+  userId       Int?
+  action       String
+  resource     String?
+  resourceId   Int?
+  oldValue     String?
+  newValue     String?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime   @default(now())
+  user         User?      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@index([userId], name: "idx_audit_user")
+  @@index([action], name: "idx_audit_action")
+  @@index([createdAt], name: "idx_audit_time")
+}
+
+model Order {
+  id               Int               @id @default(autoincrement())
+  userId           Int
+  orderCode        String           @unique
+  totalAmount      Float
+  orderStatus      String           @default("PENDING") // "PENDING", "PROCESSING", "SHIPPING", "DELIVERED", "CANCELLED"
+  shippingAddress  String?
+  paymentMethod    String? // "QR_DEMO", "MOMO", "ZALOPAY", "COD"
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments         Payment[]
+  @@index([userId], name: "idx_order_user")
+  @@index([orderStatus], name: "idx_order_status")
+  @@index([createdAt], name: "idx_order_created")
+}
+
+model Payment {
+  id              Int               @id @default(autoincrement())
+  orderId         Int
+  paymentMethod   String
+  amount          Float
+  transactionId   String           @unique
+  paymentStatus   String           @default("PENDING") // "PENDING", "PAID", "FAILED", "REFUNDED"
+  paidAt          DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  order           Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paymentLogs    PaymentLog[]
+  @@index([orderId], name: "idx_payment_order")
+  @@index([transactionId], name: "idx_payment_transaction")
+  @@index([paymentStatus], name: "idx_payment_status")
+}
+
+model PaymentLog {
+  id             Int               @id @default(autoincrement())
+  paymentId      Int
+  requestData    String? // JSON stored as string
+  responseData   String? // JSON stored as string
+  logType        String // "CREATE_QR", "PAYMENT_SUCCESS", etc.
+  createdAt      DateTime         @default(now())
+  payment        Payment          @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  @@index([paymentId], name: "idx_payment_log_payment")
+  @@index([logType], name: "idx_payment_log_type")
+}

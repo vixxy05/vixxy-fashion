@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập — VIXXY D'ORANCE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&family=Cormorant+Garamond:ital,wght@1,400;0,700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-page">
+    <div class="auth-split">
+        <aside class="auth-visual">
+            <img src="images/nen_dk-dn.png" alt="VIXXY D'ORANCE">
+            <div class="auth-brand">
+                <h1>VIXXY D'ORANCE</h1>
+                <p>WOMEN'S FASHION</p>
+            </div>
+        </aside>
+
+        <main class="auth-panel">
+            <div class="auth-form-wrap">
+                <div class="auth-welcome">
+                    <p class="line1">Welcome to the</p>
+                    <p class="line2">WORLD OF FASHION</p>
+                </div>
+
+                <form class="auth-form" action="index.html" method="get">
+                    <div class="auth-field">
+                        <input type="email" name="email" id="loginEmail" placeholder="Email" autocomplete="email" required>
+                    </div>
+                    <div class="auth-field">
+                        <input type="password" name="password" id="loginPassword" placeholder="Mật khẩu" required>
+                    </div>
+                    <button type="submit" class="auth-submit">ĐĂNG NHẬP</button>
+                </form>
+                <p class="auth-hint">Admin: admin@vixxy.com</p>
+
+                <p class="auth-footer">
+                    Chưa có tài khoản?
+                    <a href="register.html">Đăng ký ngay</a>
+                </p>
+                <a href="index.html" class="auth-back">← Về trang chủ</a>
+            </div>
+        </main>
+    </div>
+    <script src="js/login.js"></script>
+</body>
+</html>

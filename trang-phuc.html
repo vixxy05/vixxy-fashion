@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang phục — VIXXY D'ORANCE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courgette&family=Playfair+Display:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Platypi:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/trang-phuc.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo"><a href="index.html">VIXXY D'ORANCE</a></div>
+        <nav class="menu">
+            <a href="index.html">Hàng mới</a>
+            <a href="trang-phuc.html" aria-current="page">Trang phục</a>
+            <a href="index.html#trang-suc">Trang sức</a>
+            <a href="index.html#phu-kien">Phụ kiện</a>
+            <a href="#">Ưu đãi</a>
+            <a href="#">Thông tin thương hiệu</a>
+        </nav>
+        <div class="nav-icons" aria-label="Tiện ích">
+            <button type="button" class="nav-icon" title="Tìm kiếm" aria-label="Tìm kiếm">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+            </button>
+            <a href="login.html" class="nav-icon" title="Đăng nhập" aria-label="Đăng nhập">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M5 20c0-4 3.5-7 7-7s7 3 7 7"></path></svg>
+            </a>
+            <button type="button" class="nav-icon" title="Giỏ hàng" aria-label="Giỏ hàng">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8V7a4 4 0 118 0v1"></path><path d="M6 8h12l-1 12H7L6 8z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="clothing-page">
+        <h1 class="clothing-page__title">Trang phục</h1>
+
+        <div class="clothing-filters" role="toolbar" aria-label="Lọc và sắp xếp">
+            <span class="clothing-filters__label">Lọc &amp; sắp xếp</span>
+            <button type="button" class="clothing-filters__item">Sắp xếp</button>
+            <button type="button" class="clothing-filters__item">Kích thước</button>
+            <button type="button" class="clothing-filters__item">Loại</button>
+            <button type="button" class="clothing-filters__item">Chất liệu</button>
+        </div>
+
+        <div id="clothing-grid" class="clothing-grid" aria-label="Danh sách trang phục"></div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-col footer-brand">
+                <h2 class="footer-logo">VIXXY D'ORANCE</h2>
+                <p class="footer-tagline">CÔNG TY CỔ PHẦN THỜI TRANG</p>
+                <ul class="footer-contact">
+                    <li>Hotline: 1900 2005</li>
+                    <li>8:30 – 19:00 tất cả các ngày trong tuần</li>
+                    <li>2A BCD, Phường E, TP.HCM</li>
+                </ul>
+            </div>
+            <div class="footer-col footer-support">
+                <h3 class="footer-heading">HỖ TRỢ KHÁCH HÀNG</h3>
+                <ul class="footer-links">
+                    <li><a href="#" class="support-chat-link" data-topic="Hỏi đáp">Hỏi đáp</a></li>
+                    <li><a href="#" class="support-chat-link" data-topic="Chính sách vận chuyển">Chính sách vận chuyển</a></li>
+                    <li><a href="#" class="support-chat-link" data-topic="Hướng dẫn thanh toán">Hướng dẫn thanh toán</a></li>
+                </ul>
+            </div>
+            <div class="footer-col footer-connect">
+                <h3 class="footer-heading">KẾT NỐI</h3>
+                <div class="footer-social">
+                    <a href="#" class="social-btn" aria-label="Facebook">f</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/trang-phuc-data.js"></script>
+    <script src="js/trang-phuc.js"></script>
+    <script src="js/chat-widget.js"></script>
+</body>
+</html>
