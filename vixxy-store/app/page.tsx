@@ -6,6 +6,7 @@ import { HeroHome } from "@/components/HeroHome";
 import { ProductCard } from "@/components/ProductCard";
 import { SectionBanner } from "@/components/SectionBanner";
 import { useProducts } from "@/hooks/useProducts";
+import { useState, useEffect } from "react";
 
 function SectionTitle({
   title,
@@ -31,6 +32,57 @@ function SectionTitle({
   );
 }
 
+// Banner component for dynamic banners
+function DynamicBanners() {
+  const [banners, setBanners] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/banners")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setBanners(data.data);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading || banners.length === 0) return null;
+
+  return (
+    <div className="bg-yellow-50 py-8">
+      <div className="mx-auto max-w-site px-4 md:px-8">
+        <div className="space-y-4">
+          {banners.map((banner) => (
+            <div
+              key={banner.id}
+              className="relative overflow-hidden rounded-2xl"
+            >
+              {banner.linkUrl ? (
+                <Link href={banner.linkUrl}>
+                  <img
+                    src={banner.imageUrl}
+                    alt={banner.title}
+                    className="w-full h-auto"
+                  />
+                </Link>
+              ) : (
+                <img
+                  src={banner.imageUrl}
+                  alt={banner.title}
+                  className="w-full h-auto"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const { products } = useProducts();
   const clothing = products.filter((p) => p.category === "clothing" && p.isActive);
@@ -40,6 +92,7 @@ export default function HomePage() {
   return (
     <>
       <HeroHome />
+      <DynamicBanners />
 
       <section className="bg-[#ECEAEA] py-16 md:py-24">
         <div className="mx-auto max-w-site px-4 md:px-8">

@@ -22,6 +22,28 @@ interface OnlineUser {
 
 const onlineUsers = new Map<string, OnlineUser>();
 
+// Helper to emit events to all clients
+export const emitToAll = (eventName: string, data?: any) => {
+  if (data !== undefined) {
+    io.emit(eventName, data);
+  } else {
+    io.emit(eventName);
+  }
+};
+
+// Helper to emit admin-specific events
+export const emitToAdmins = (eventName: string, data?: any) => {
+  onlineUsers.forEach((user) => {
+    if (user.role === "STAFF" || user.role === "ADMIN") {
+      if (data !== undefined) {
+        io.to(user.socketId).emit(eventName, data);
+      } else {
+        io.to(user.socketId).emit(eventName);
+      }
+    }
+  });
+};
+
 io.on("connection", (socket: Socket) => {
   console.log(`User connected: ${socket.id}`);
 

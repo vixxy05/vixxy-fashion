@@ -3,8 +3,76 @@ import { Request, Response } from "express";
 import db from "../models";
 import ZaloPayService from "../services/payment/zalopay.service";
 import MoMoService from "../services/payment/momo.service";
+import { emitToAll, emitToAdmins } from "../socket/socketServer";
 
-const { Payment, PaymentLog, Order, Product, OrderDetail } = db;
+const { Payment, PaymentLog, Order, Product, OrderDetail, InventoryReservation, OrderVoucher, Voucher } = db;
+
+// Helper function to confirm inventory and deduct stock
+const confirmPayment = async (paymentId: number, orderId: number) => {
+  const transaction = await db.sequelize.transaction();
+  try {
+    const order = await Order.findByPk(orderId, { transaction });
+    if (order) {
+      await order.update({ orderStatus: "PAID" }, { transaction });
+
+      const orderDetails = await OrderDetail.findAll({ where: { orderId: order.id }, transaction });
+      for (const detail of orderDetails) {
+        const product = await Product.findByPk(detail.productId, { transaction });
+        if (product) {
+          await product.update({
+            stockQuantity: product.stockQuantity - detail.quantity,
+          }, { transaction });
+        }
+      }
+
+      // Confirm inventory reservations
+      const reservations = await InventoryReservation.findAll({ where: { orderId: order.id }, transaction });
+      for (const reservation of reservations) {
+        await reservation.update({ status: "CONFIRMED" }, { transaction });
+      }
+    }
+
+    await transaction.commit();
+    emitToAll("order:paid", order);
+    emitToAdmins("dashboard:update");
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+
+// Helper function to handle failed payment
+const handleFailedPayment = async (paymentId: number, orderId: number) => {
+  const transaction = await db.sequelize.transaction();
+  try {
+    const order = await Order.findByPk(orderId, { transaction });
+    if (order) {
+      await order.update({ orderStatus: "cancelled" }, { transaction });
+
+      // Release inventory reservations
+      const reservations = await InventoryReservation.findAll({ where: { orderId: order.id }, transaction });
+      for (const reservation of reservations) {
+        await reservation.update({ status: "RELEASED" }, { transaction });
+      }
+
+      // Restore voucher usage if applicable
+      const orderVoucher = await OrderVoucher.findOne({ where: { orderId: order.id }, transaction });
+      if (orderVoucher) {
+        const voucher = await Voucher.findByPk(orderVoucher.voucherId, { transaction });
+        if (voucher) {
+          await voucher.update({ usedCount: Math.max(0, voucher.usedCount - 1) }, { transaction });
+        }
+      }
+    }
+
+    await transaction.commit();
+    emitToAll("order:cancelled", order);
+    emitToAdmins("dashboard:update");
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
 
 export class PaymentController {
   async createPayment(req: Request, res: Response) {
@@ -119,20 +187,7 @@ export class PaymentController {
         paidAt: new Date(),
       });
 
-      const order = await Order.findByPk(payment.orderId);
-      if (order) {
-        await order.update({ orderStatus: "PAID" });
-
-        const orderDetails = await OrderDetail.findAll({ where: { orderId: order.id } });
-        for (const detail of orderDetails) {
-          const product = await Product.findByPk(detail.productId);
-          if (product) {
-            await product.update({
-              stockQuantity: product.stockQuantity - detail.quantity,
-            });
-          }
-        }
-      }
+      await confirmPayment(payment.id, payment.orderId);
 
       res.json({ return_code: 1, return_message: "Success" });
     } catch (error: any) {
@@ -155,30 +210,38 @@ export class PaymentController {
         return res.json({ success: false, message: "Payment not found" });
       }
 
+      // Since verifyCallback returns success=true only when valid, assume SUCCESS here
       await payment.update({
         paymentStatus: "SUCCESS",
         transactionId,
         paidAt: new Date(),
       });
 
-      const order = await Order.findByPk(payment.orderId);
-      if (order) {
-        await order.update({ orderStatus: "PAID" });
-
-        const orderDetails = await OrderDetail.findAll({ where: { orderId: order.id } });
-        for (const detail of orderDetails) {
-          const product = await Product.findByPk(detail.productId);
-          if (product) {
-            await product.update({
-              stockQuantity: product.stockQuantity - detail.quantity,
-            });
-          }
-        }
-      }
+      await confirmPayment(payment.id, payment.orderId);
 
       res.json({ success: true, message: "Callback processed" });
     } catch (error: any) {
       console.error("Error handling MoMo callback:", error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // New endpoint to handle failed payment
+  async handleFailedPaymentEndpoint(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      const payment = await Payment.findByPk(Number(Array.isArray(id) ? id[0] : id));
+      if (!payment) {
+        return res.status(404).json({ success: false, message: "Payment not found" });
+      }
+
+      await payment.update({ paymentStatus: "FAILED" });
+      await handleFailedPayment(payment.id, payment.orderId);
+
+      res.json({ success: true, message: "Payment failed, order cancelled" });
+    } catch (error: any) {
+      console.error("Error handling failed payment:", error);
       res.status(500).json({ success: false, message: error.message });
     }
   }

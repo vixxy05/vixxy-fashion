@@ -8,9 +8,9 @@ import { motion } from "framer-motion";
 import { cartItemKey, useCart } from "@/context/CartContext";
 import { useAuthStore } from "@/stores/authStore";
 import { formatPrice } from "@/lib/products";
-import { createOrder, simulateOrderProgress } from "@/lib/orders";
+import { env } from "@/lib/env";
 
-const API_URL = "/api";
+const API_URL = env.apiUrl.replace(/\/api$/, "") + "/api";
 
 export default function CheckoutPage() {
   const {
@@ -32,6 +32,10 @@ export default function CheckoutPage() {
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+  const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
 
   const selectedItems = items.filter((i) =>
     selectedItemKeys.includes(cartItemKey(i.product.id, i.size))
@@ -41,7 +45,36 @@ export default function CheckoutPage() {
     if (selectedTotal >= 2000000) setShippingFee(0);
   }, [selectedTotal]);
 
-  const finalTotal = selectedTotal + shippingFee;
+  const finalTotal = selectedTotal + shippingFee - voucherDiscount;
+
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim()) return;
+    setIsApplyingVoucher(true);
+    try {
+      const res = await fetch(`${API_URL}/vouchers/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: voucherCode, orderAmount: finalTotal + voucherDiscount }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAppliedVoucher(data.data.voucher);
+        setVoucherDiscount(data.data.discountAmount);
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      alert("Lỗi áp dụng voucher");
+    } finally {
+      setIsApplyingVoucher(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherDiscount(0);
+    setVoucherCode("");
+  };
 
   // Polling kiểm tra trạng thái Payment
   if (!user) {
@@ -93,79 +126,59 @@ export default function CheckoutPage() {
     console.log("Checkout Request finalTotal:", finalTotal);
 
     try {
-      const order = createOrder({
-        userId: user.email,
-        items: selectedItems,
-        shippingInfo: {
-          name: fullName,
-          phone: String(formData.get("phone") ?? ""),
-          email: String(formData.get("email") ?? ""),
-          address: shippingAddress,
-          city: String(formData.get("city") ?? ""),
-        },
-        paymentMethod: paymentMethod === "QR_DEMO" ? "sepay" : "cod",
-        subtotal: selectedTotal,
-        shippingFee,
-        total: finalTotal,
+      // Map items to the format backend expects
+      const itemsForBackend = selectedItems.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+        unitPrice: item.product.price,
+        size: item.size || null
+      }));
+
+      // Bước 1: Tạo Order via backend API
+      const payload = {
+        userId: user.id || 1, // Use user.id if available
+        items: itemsForBackend,
+        shippingName: fullName,
+        shippingPhone: String(formData.get("phone") ?? ""),
+        shippingAddress,
+        shippingCity: String(formData.get("city") ?? ""),
+        totalAmount: finalTotal,
+        voucherId: appliedVoucher?.id,
+        discountAmount: voucherDiscount
+      };
+      console.log("Checkout Request payload:", payload);
+
+      console.log("Calling API:", `${API_URL}/orders`);
+      const res = await fetch(`${API_URL}/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
-      if (paymentMethod === "QR_DEMO") {
-        const paymentTarget = `${window.location.origin}/payment/mock?orderId=${order.id}&amount=${finalTotal}`;
-        setCurrentOrderId(order.id);
-        setQrCode(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(paymentTarget)}`);
-        setPaymentUrl(paymentTarget);
-        setShowQrModal(true);
-        return;
+      console.log("Checkout API response status:", res.status);
+      if (!res.ok) {
+        let errorMessage = "Unknown error";
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.message || `Error: ${res.statusText}`;
+        } catch {
+          const errorText = await res.text();
+          errorMessage = errorText || `Error: ${res.statusText}`;
+        }
+        console.error("Checkout API error response:", errorMessage);
+        throw new Error(errorMessage);
       }
 
-      simulateOrderProgress(order.id);
-      selectedItems.forEach((cartItem) => {
-        removeItem(cartItemKey(cartItem.product.id, cartItem.size || ""));
-      });
-      clearSelected();
-      router.push(`/checkout/success?orderId=${order.id}`);
-      return;
+      const data = await res.json();
+      console.log("Checkout API full response:", data);
+
+      if (!data.success) throw new Error(data.message);
+
+      const orderId = data.data.id;
+      setCurrentOrderId(orderId);
 
       if (paymentMethod === "QR_DEMO") {
-        // Bước 1: Tạo Order
-        const payload = {
-          userId: user?.id || 1,
-          paymentMethod: "QR_DEMO",
-          shippingAddress,
-          totalAmount: finalTotal,
-        };
-        console.log("Checkout Request payload:", payload);
-
-        console.log("Calling API:", `${API_URL}/orders`);
-        const res = await fetch(`${API_URL}/orders`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        console.log("Checkout API response status:", res.status);
-        if (!res.ok) {
-          let errorMessage = "Unknown error";
-          try {
-            const errorData = await res.json();
-            errorMessage = errorData.message || `Error: ${res.statusText}`;
-          } catch {
-            const errorText = await res.text();
-            errorMessage = errorText || `Error: ${res.statusText}`;
-          }
-          console.error("Checkout API error response:", errorMessage);
-          throw new Error(errorMessage);
-        }
-
-        const data = await res.json();
-        console.log("Checkout API full response:", data);
-
-        if (!data.success) throw new Error(data.message);
-
-        const orderId = data.data.orderId;
-        setCurrentOrderId(orderId);
-
-        // Bước 2: Tạo QR Payment
+        // Bước 2: Tạo QR Payment via backend API
         console.log("Calling create QR API:", `${API_URL}/payments/create-qr`);
         const qrRes = await fetch(`${API_URL}/payments/create-qr`, {
           method: "POST",
@@ -189,14 +202,21 @@ export default function CheckoutPage() {
 
         const qrDataResult = await qrRes.json();
         console.log("QR API full response:", qrDataResult);
-        setQrCode(qrDataResult.data.qrCode);
-        setPaymentUrl(qrDataResult.data.paymentUrl);
+
+        // Generate payment target (mock payment page)
+        const paymentTarget = `${env.baseUrl}/payment/mock?orderId=${orderId}&amount=${finalTotal}`;
+        setQrCode(qrDataResult.data.qrCode || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(paymentTarget)}`);
+        setPaymentUrl(qrDataResult.data.paymentUrl || paymentTarget);
         setShowQrModal(true);
         return;
       }
 
-      // Thực hiện cho các phương thức khác ở đây
-      router.push(`/checkout/success?orderId=mock-${Date.now()}`);
+      // For COD payment method
+      selectedItems.forEach((cartItem) => {
+        removeItem(cartItemKey(cartItem.product.id, cartItem.size || ""));
+      });
+      clearSelected();
+      router.push(`/checkout/success?orderId=${orderId}`);
 
     } catch (error: any) {
       console.error("Error:", error);
@@ -393,6 +413,45 @@ export default function CheckoutPage() {
             ))}
           </div>
 
+          {/* Voucher Section */}
+          <div className="mt-6 border-t border-neutral-200 pt-4 space-y-3">
+            {!appliedVoucher ? (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Nhập mã giảm giá"
+                  value={voucherCode}
+                  onChange={(e) => setVoucherCode(e.target.value)}
+                  className="flex-1 border border-neutral-300 px-3 py-3 rounded-xl text-sm"
+                />
+                <button
+                  onClick={handleApplyVoucher}
+                  disabled={isApplyingVoucher}
+                  className="bg-black text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-neutral-800 disabled:opacity-70"
+                >
+                  {isApplyingVoucher ? "Đang áp dụng..." : "Áp dụng"}
+                </button>
+              </div>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-3 flex justify-between items-center">
+                <div>
+                  <p className="text-sm font-medium text-yellow-800">
+                    Voucher đã áp dụng: {appliedVoucher.code}
+                  </p>
+                  <p className="text-xs text-yellow-600">Giảm giá: {formatPrice(voucherDiscount)}</p>
+                </div>
+                <button
+                  onClick={handleRemoveVoucher}
+                  className="text-yellow-700 hover:text-yellow-900"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="mt-6 border-t border-neutral-200 pt-4 space-y-3">
             <div className="flex justify-between text-sm">
               <span>Tạm tính</span>
@@ -402,6 +461,12 @@ export default function CheckoutPage() {
               <span>Phí vận chuyển</span>
               <span>{shippingFee === 0 ? "Miễn phí" : formatPrice(shippingFee)}</span>
             </div>
+            {voucherDiscount > 0 && (
+              <div className="flex justify-between text-sm text-green-600">
+                <span>Giảm giá voucher</span>
+                <span>-{formatPrice(voucherDiscount)}</span>
+              </div>
+            )}
             {shippingFee === 0 && (
               <p className="text-xs text-green-600">Bạn được miễn phí vận chuyển!</p>
             )}

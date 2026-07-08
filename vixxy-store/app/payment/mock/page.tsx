@@ -5,43 +5,27 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { formatPrice } from "@/lib/products";
-import { getOrderById, updateOrder } from "@/lib/orders";
+import { env } from "@/lib/env";
+import { useCart, cartItemKey } from "@/context/CartContext";
+import { useAuthStore } from "@/stores/authStore";
 
-const API_URL = "/api";
+const API_URL = env.apiUrl.replace(/\/api$/, "") + "/api";
 
-function clearPaidOrderFromCart(orderId: string) {
-  const order = getOrderById(orderId);
-  const rawUser = localStorage.getItem("vixxy_user");
-  const user = rawUser ? JSON.parse(rawUser) : null;
-  const email = user?.email;
-  const storageKey = email
-    ? `vixxy_cart_${email.replace(/[^a-zA-Z0-9]/g, "_")}`
-    : "vixxy_cart_guest";
-  const rawCart = localStorage.getItem(storageKey);
 
-  if (!order || !rawCart) return;
-
-  const paidItemKeys = new Set(
-    order.items.map((item) => `${item.product.id}::${item.size ?? "default"}`)
-  );
-  const cartItems = JSON.parse(rawCart);
-  const nextCartItems = Array.isArray(cartItems)
-    ? cartItems.filter((item) => !paidItemKeys.has(`${item.product.id}::${item.size ?? "default"}`))
-    : [];
-
-  localStorage.setItem(storageKey, JSON.stringify(nextCartItems));
-}
 
 export default function PaymentMockPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { items, selectedItemKeys, clearSelected, removeItem } = useCart();
   const orderId = searchParams.get("orderId");
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderTotal, setOrderTotal] = useState(0);
+  const selectedItems = items.filter((i) =>
+    selectedItemKeys.includes(cartItemKey(i.product.id, i.size))
+  );
 
   useEffect(() => {
-    const order = orderId ? getOrderById(orderId) : null;
-    setOrderTotal(order?.total ?? Number(searchParams.get("amount") ?? 0));
+    setOrderTotal(Number(searchParams.get("amount") ?? 0));
   }, [orderId, searchParams]);
 
   const handlePaymentSuccess = async () => {
@@ -49,23 +33,40 @@ export default function PaymentMockPage() {
     setIsProcessing(true);
 
     try {
-      updateOrder(orderId, { paymentStatus: "paid", orderStatus: "confirmed" });
-      clearPaidOrderFromCart(orderId);
-      window.location.href = `/payment/success?orderId=${orderId}`;
-      return;
-
+      // Call backend API to mark payment as successful
       const res = await fetch(`${API_URL}/payments/mock-success`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: parseInt(orderId) }),
+        body: JSON.stringify({ orderId }),
       });
 
-      if (res.ok) {
-        // Redirect về trang success
-        router.push(`/payment/success?orderId=${orderId}`);
+      if (!res.ok) {
+        let errorMessage = "Unknown error";
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.message || `Error: ${res.statusText}`;
+        } catch {
+          const errorText = await res.text();
+          errorMessage = errorText || `Error: ${res.statusText}`;
+        }
+        console.error("Payment API error response:", errorMessage);
+        throw new Error(errorMessage);
       }
+
+      const data = await res.json();
+      console.log("Payment success response:", data);
+
+      // Clear selected items from cart
+      selectedItems.forEach((cartItem) => {
+        removeItem(cartItemKey(cartItem.product.id, cartItem.size || ""));
+      });
+      clearSelected();
+
+      // Redirect to success page
+      window.location.href = `/payment/success?orderId=${orderId}`;
     } catch (e) {
       console.error(e);
+      alert("Lỗi xử lý thanh toán, vui lòng thử lại!");
     } finally {
       setIsProcessing(false);
     }

@@ -30,12 +30,12 @@ class OrderDetail
   public readonly updatedAt!: Date;
 
   // Associations
-  public static associate(): void {
-    OrderDetail.belongsTo(Order, {
+  public static associate(models: any): void {
+    OrderDetail.belongsTo(models.Order, {
       foreignKey: "orderId",
       as: "order",
     });
-    OrderDetail.belongsTo(Product, {
+    OrderDetail.belongsTo(models.Product, {
       foreignKey: "productId",
       as: "product",
     });

@@ -20,6 +20,9 @@ import chatMessageRoutes from "./routes/chatMessageRoutes";
 import cartRoutes from "./routes/cartRoutes";
 import aiSellingRoutes from "./routes/aiSellingRoutes";
 import mockPaymentRoutes from "./routes/mockPaymentRoutes";
+import bannerRoutes from "./routes/bannerRoutes";
+import voucherRoutes from "./routes/voucherRoutes";
+import refundRoutes from "./routes/refundRoutes";
 import swaggerSpec from "./config/swagger";
 import { errorHandler } from "./middleware/error.middleware";
 import {
@@ -83,6 +86,9 @@ app.use("/api/chat-sessions", chatSessionRoutes);
 app.use("/api/chat-messages", chatMessageRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/ai-selling", aiSellingRoutes);
+app.use("/api/banners", bannerRoutes);
+app.use("/api/vouchers", voucherRoutes);
+app.use("/api/refunds", refundRoutes);
 app.use("/api", mockPaymentRoutes);
 
 app.get("/", (req, res) => {

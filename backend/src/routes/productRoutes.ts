@@ -1,6 +1,7 @@
 import express from "express";
 import db from "../models";
 import { Op } from "sequelize";
+import { emitToAll } from "../socket/socketServer";
 
 const router = express.Router();
 
@@ -44,6 +45,50 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     console.error("Get product error:", error);
     res.status(500).json({ success: false, message: "Failed to get product" });
+  }
+});
+
+// Admin: Create product
+router.post("/admin", async (req, res) => {
+  try {
+    const product = await db.Product.create(req.body);
+    emitToAll("product:created", product);
+    res.json({ success: true, data: product });
+  } catch (error) {
+    console.error("Create product error:", error);
+    res.status(500).json({ success: false, message: "Failed to create product" });
+  }
+});
+
+// Admin: Update product
+router.put("/admin/:id", async (req, res) => {
+  try {
+    const product = await db.Product.findByPk(req.params.id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+    await product.update(req.body);
+    emitToAll("product:updated", product);
+    res.json({ success: true, data: product });
+  } catch (error) {
+    console.error("Update product error:", error);
+    res.status(500).json({ success: false, message: "Failed to update product" });
+  }
+});
+
+// Admin: Delete product
+router.delete("/admin/:id", async (req, res) => {
+  try {
+    const product = await db.Product.findByPk(req.params.id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+    await product.destroy();
+    emitToAll("product:deleted", { id: req.params.id });
+    res.json({ success: true, message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Delete product error:", error);
+    res.status(500).json({ success: false, message: "Failed to delete product" });
   }
 });
 
