@@ -16,10 +16,6 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(0); // Add refresh state!
   const [authChecked, setAuthChecked] = useState(false);
-  const [showRefundModal, setShowRefundModal] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [refundReason, setRefundReason] = useState("");
-  const [isSubmittingRefund, setIsSubmittingRefund] = useState(false);
 
   // Give time for auth context to hydrate first!
   useEffect(() => {
@@ -56,31 +52,6 @@ export default function OrdersPage() {
       console.error("Error loading orders:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleRequestRefund = async () => {
-    if (!selectedOrderId || !user) return;
-    setIsSubmittingRefund(true);
-    try {
-      const res = await fetch("/api/refunds/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: selectedOrderId, userId: user.id, reason: refundReason }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert("Yêu cầu hoàn trả đã được gửi!");
-        setShowRefundModal(false);
-        setRefundReason("");
-        setRefresh(r => r + 1);
-      } else {
-        alert(data.message);
-      }
-    } catch (error) {
-      alert("Lỗi gửi yêu cầu hoàn trả");
-    } finally {
-      setIsSubmittingRefund(false);
     }
   };
 
@@ -156,68 +127,15 @@ export default function OrdersPage() {
                 
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                   <p className="font-bold text-lg">Tổng: {formatPrice(order.total)}</p>
-                  <div className="flex gap-2">
-                    {order.orderStatus !== "cancelled" && order.orderStatus !== "refunded" && (
-                      <button
-                        onClick={() => {
-                          setSelectedOrderId(order.id);
-                          setShowRefundModal(true);
-                        }}
-                        className="border border-red-500 text-red-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-red-50 transition"
-                      >
-                        Yêu cầu hoàn trả
-                      </button>
-                    )}
-                    <Link href={`/orders/${order.id}`} className="border border-black px-6 py-2 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-black hover:text-white transition">
-                      Xem chi tiết
-                    </Link>
-                  </div>
+                  <Link href={`/orders/${order.id}`} className="border border-black px-6 py-2 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-black hover:text-white transition">
+                    Xem chi tiết
+                  </Link>
                 </div>
               </div>
             ))}
           </div>
         )}
       </motion.div>
-
-      {/* Refund Modal */}
-      {showRefundModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
-          >
-            <h2 className="font-display text-2xl font-bold text-center mb-4">
-              Yêu cầu hoàn trả / Hủy đơn hàng
-            </h2>
-            <p className="text-center text-neutral-600 mb-6">
-              Vui lòng cho chúng tôi biết lý do
-            </p>
-            <textarea
-              value={refundReason}
-              onChange={(e) => setRefundReason(e.target.value)}
-              placeholder="Nhập lý do yêu cầu hoàn trả..."
-              className="w-full border border-neutral-300 px-4 py-4 rounded-xl mb-4 text-sm"
-              rows={4}
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowRefundModal(false)}
-                className="flex-1 border border-neutral-300 py-4 rounded-xl font-semibold hover:bg-neutral-100 transition"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleRequestRefund}
-                disabled={isSubmittingRefund}
-                className="flex-1 bg-red-500 text-white py-4 rounded-xl font-semibold hover:bg-red-600 transition disabled:opacity-70"
-              >
-                {isSubmittingRefund ? "Đang gửi..." : "Gửi yêu cầu"}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 }

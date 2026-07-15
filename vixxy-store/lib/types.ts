@@ -60,14 +60,19 @@ export interface User {
 }
 
 export type OrderStatus = 
+  | "paying"
+  | "payment_failed"
   | "pending" 
   | "confirmed" 
   | "shipping" 
   | "delivered" 
-  | "cancelled";
+  | "cancelled"
+  | "refund_pending"
+  | "refunded"
+  | "refund_rejected";
 
 export type PaymentMethod = "cod" | "momo" | "zalopay" | "card" | "sepay";
-export type PaymentStatus = "pending" | "paid" | "failed";
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 
 export interface Order {
   id: string;
@@ -90,10 +95,36 @@ export interface Order {
   shippingPartner?: string;
   createdAt: string;
   updatedAt: string;
+  cancelReason?: string;
+  refundReason?: string;
+  refundRejectReason?: string;
+  voucherCode?: string;
+  discountAmount?: number;
 }
 
 export interface TrackingStep {
   status: string;
   time: string;
   location: string;
+}
+
+export interface Voucher {
+  code: string;
+  discountType: "percent" | "fixed";
+  discountValue: number;
+  minOrderValue: number;
+  maxUsage: number;
+  usedCount: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+}
+
+export interface Banner {
+  id: string;
+  title: string;
+  subtitle?: string;
+  image: string;
+  link: string;
+  isActive: boolean;
 }

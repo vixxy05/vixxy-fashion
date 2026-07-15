@@ -19,6 +19,7 @@ const PRODUCTS_EVENT = "vixxy-products-updated";
 function normalizeProduct(product: Product): Product {
   return {
     ...product,
+    id: Number(product.id),
     discountPrice: product.discountPrice ?? undefined,
     stockQuantity: Number(product.stockQuantity ?? 0),
     price: Number(product.price ?? 0),

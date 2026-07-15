@@ -17,6 +17,15 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
 
+  // Modal dialog states
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReasonInput, setCancelReasonInput] = useState("");
+  const [cancelError, setCancelError] = useState("");
+
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [refundReasonInput, setRefundReasonInput] = useState("");
+  const [refundError, setRefundError] = useState("");
+
   useEffect(() => {
     setAuthChecked(true);
   }, []);
@@ -57,10 +66,36 @@ export default function OrderDetailPage() {
     }
   };
 
-  const handleCancelOrder = () => {
+  const handleCancelOrderSubmit = () => {
+    if (!cancelReasonInput.trim()) {
+      setCancelError("Vui lòng nhập lý do hủy đơn!");
+      return;
+    }
     if (!order) return;
-    const updatedOrder = updateOrder(order.id, { orderStatus: "cancelled" });
+    const updatedOrder = updateOrder(order.id, { 
+      orderStatus: "cancelled",
+      cancelReason: cancelReasonInput 
+    });
     if (updatedOrder) setOrder(updatedOrder);
+    setShowCancelModal(false);
+    setCancelReasonInput("");
+    setCancelError("");
+  };
+
+  const handleRefundOrderSubmit = () => {
+    if (!refundReasonInput.trim()) {
+      setRefundError("Vui lòng nhập lý do hoàn tiền!");
+      return;
+    }
+    if (!order) return;
+    const updatedOrder = updateOrder(order.id, { 
+      orderStatus: "refund_pending",
+      cancelReason: refundReasonInput 
+    });
+    if (updatedOrder) setOrder(updatedOrder);
+    setShowRefundModal(false);
+    setRefundReasonInput("");
+    setRefundError("");
   };
 
   if (loading) {
@@ -148,22 +183,51 @@ export default function OrderDetailPage() {
                   <span className="text-neutral-600">Phí vận chuyển</span>
                   <span>{order.shippingFee === 0 ? "Miễn phí" : formatPrice(order.shippingFee)}</span>
                 </div>
+                {order.discountAmount && order.discountAmount > 0 && (
+                  <div className="flex justify-between text-green-700 font-medium">
+                    <span>Giảm giá ({order.voucherCode})</span>
+                    <span>-{formatPrice(order.discountAmount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between border-t border-neutral-200 pt-2 font-bold text-lg">
                   <span>Tổng cộng</span>
                   <span>{formatPrice(order.total)}</span>
                 </div>
               </div>
 
-              {order.orderStatus === "pending" && (
-                <div className="mt-6">
+              {order.cancelReason && (
+                <div className="mt-6 bg-neutral-50 p-4 rounded-lg text-sm">
+                  <p className="font-semibold text-neutral-700">Lý do hủy/hoàn tiền:</p>
+                  <p className="mt-1 text-neutral-600">{order.cancelReason}</p>
+                </div>
+              )}
+
+              {order.refundRejectReason && (
+                <div className="mt-4 bg-red-50 text-red-800 p-4 rounded-lg text-sm border border-red-100">
+                  <p className="font-semibold">Lý do từ chối hoàn tiền:</p>
+                  <p className="mt-1">{order.refundRejectReason}</p>
+                </div>
+              )}
+
+              <div className="mt-6 flex flex-wrap gap-4">
+                {(order.orderStatus === "pending" || order.orderStatus === "confirmed") && (
                   <button
-                    onClick={handleCancelOrder}
-                    className="border border-red-500 text-red-500 px-6 py-2 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-red-50 transition"
+                    onClick={() => setShowCancelModal(true)}
+                    className="border border-red-500 text-red-500 px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-red-50 transition rounded-lg"
                   >
                     Hủy đơn hàng
                   </button>
-                </div>
-              )}
+                )}
+
+                {order.orderStatus === "delivered" && (
+                  <button
+                    onClick={() => setShowRefundModal(true)}
+                    className="bg-black text-white px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-neutral-800 transition rounded-lg"
+                  >
+                    Yêu cầu hủy đơn/Hoàn tiền
+                  </button>
+                )}
+              </div>
             </div>
           </>
         ) : (
@@ -173,6 +237,72 @@ export default function OrderDetailPage() {
           </div>
         )}
       </motion.div>
+
+      {/* Cancel Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-lg font-bold mb-4">Hủy đơn hàng</h3>
+            <p className="text-sm text-neutral-600 mb-4">Vui lòng nhập lý do hủy đơn hàng này:</p>
+            <textarea
+              value={cancelReasonInput}
+              onChange={(e) => setCancelReasonInput(e.target.value)}
+              placeholder="Nhập lý do hủy..."
+              className="w-full border border-neutral-300 rounded-lg p-3 text-sm min-h-24 outline-none focus:border-black mb-1"
+            />
+            {cancelError && <p className="text-xs text-red-600 mb-4">{cancelError}</p>}
+            <div className="flex justify-end gap-3 text-sm mt-3">
+              <button
+                type="button"
+                onClick={() => setShowCancelModal(false)}
+                className="border border-neutral-300 px-4 py-2 rounded-lg"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelOrderSubmit}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700"
+              >
+                Xác nhận Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Refund Modal */}
+      {showRefundModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-lg font-bold mb-4">Yêu cầu hoàn tiền</h3>
+            <p className="text-sm text-neutral-600 mb-4">Vui lòng nhập lý do yêu cầu hoàn tiền cho đơn hàng:</p>
+            <textarea
+              value={refundReasonInput}
+              onChange={(e) => setRefundReasonInput(e.target.value)}
+              placeholder="Nhập lý do hoàn tiền..."
+              className="w-full border border-neutral-300 rounded-lg p-3 text-sm min-h-24 outline-none focus:border-black mb-1"
+            />
+            {refundError && <p className="text-xs text-red-600 mb-4">{refundError}</p>}
+            <div className="flex justify-end gap-3 text-sm mt-3">
+              <button
+                type="button"
+                onClick={() => setShowRefundModal(false)}
+                className="border border-neutral-300 px-4 py-2 rounded-lg"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                onClick={handleRefundOrderSubmit}
+                className="bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-neutral-800"
+              >
+                Gửi yêu cầu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

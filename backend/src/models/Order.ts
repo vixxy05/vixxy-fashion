@@ -35,18 +35,10 @@ class Order
   public readonly updatedAt!: Date;
 
   // Associations
-  public static associate(models: any): void {
-    Order.belongsTo(models.User, {
+  public static associate(): void {
+    Order.belongsTo(User, {
       foreignKey: "userId",
       as: "user",
-    });
-    Order.hasMany(models.OrderDetail, {
-      foreignKey: "orderId",
-      as: "orderDetails",
-    });
-    Order.hasMany(models.Payment, {
-      foreignKey: "orderId",
-      as: "payments",
     });
   }
 }

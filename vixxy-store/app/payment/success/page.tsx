@@ -17,9 +17,9 @@ export default function PaymentSuccessPage() {
 
   useEffect(() => {
     const order = orderId ? getOrderById(orderId) : null;
-    setOrderTotal(order?.total ?? 0);
+    setOrderTotal(order?.total ?? Number(searchParams.get("amount") ?? 0));
     setOrderDate(new Date().toLocaleString("vi-VN"));
-  }, [orderId]);
+  }, [orderId, searchParams]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white flex items-center justify-center p-4">
@@ -29,9 +29,23 @@ export default function PaymentSuccessPage() {
         className="bg-white rounded-3xl p-12 max-w-lg w-full shadow-2xl"
       >
         <div className="text-center mb-10">
-          <div className="h-24 w-24 rounded-full bg-gradient-to-r from-green-500 to-green-700 flex items-center justify-center mx-auto mb-6 text-6xl">
-            ✅
-          </div>
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            className="h-24 w-24 rounded-full bg-green-50 border-4 border-green-100 flex items-center justify-center mx-auto mb-6 shadow-sm"
+          >
+            <svg className="h-10 w-10 text-green-600" fill="none" stroke="currentColor" strokeWidth="3.5" viewBox="0 0 24 24">
+              <motion.path 
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                d="M5 13l4 4L19 7" 
+              />
+            </svg>
+          </motion.div>
           <h1 className="font-display text-4xl font-bold text-black">Thanh toán thành công</h1>
           <p className="text-neutral-600 mt-3 text-lg">Đơn hàng của bạn đang được chuẩn bị</p>
         </div>

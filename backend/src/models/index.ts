@@ -37,49 +37,41 @@ import RefreshToken from "./RefreshToken";
 import ResetToken from "./ResetToken";
 import LoginHistory from "./LoginHistory";
 import AuditLog from "./AuditLog";
-import RefundRequest from "./RefundRequest";
-import Banner from "./Banner";
-import Voucher from "./Voucher";
-import OrderVoucher from "./OrderVoucher";
-import InventoryReservation from "./InventoryReservation";
 
 const initAssociations = () => {
-  Permission.associate(db);
-  Role.associate(db);
-  User.associate(db);
-  RefreshToken.associate(db);
-  ResetToken.associate(db);
-  LoginHistory.associate(db);
-  AuditLog.associate(db);
-  PaymentGateway.associate(db);
-  Order.associate(db);
-  OrderDetail.associate(db);
-  Payment.associate(db);
-  PaymentLog.associate(db);
-  Shipping.associate(db);
-  Conversation.associate(db);
-  Message.associate(db);
-  MessageAttachment.associate(db);
-  ConversationSummary.associate(db);
-  ConversationTag.associate(db);
-  ConversationArchive.associate(db);
-  AIUsageLog.associate(db);
-  AIKnowledge.associate(db);
-  AIEmbedding.associate(db);
-  AIKnowledgeSearchLog.associate(db);
-  ChatSession.associate(db);
-  ChatMessage.associate(db);
-  ChatTransfer.associate(db);
-  ChatQueue.associate(db);
-  ChatAttachment.associate(db);
-  Cart.associate(db);
-  CartItem.associate(db);
-  AISalesSession.associate(db);
-  AIRecommendationLog.associate(db);
-  AIActionLog.associate(db);
-  RefundRequest.associate(db);
-  OrderVoucher.associate(db);
-  InventoryReservation.associate(db);
+  Permission.associate();
+  Role.associate();
+  User.associate();
+  RefreshToken.associate();
+  ResetToken.associate();
+  LoginHistory.associate();
+  AuditLog.associate();
+  PaymentGateway.associate();
+  Order.associate();
+  OrderDetail.associate();
+  Payment.associate();
+  PaymentLog.associate();
+  Shipping.associate();
+  Conversation.associate();
+  Message.associate();
+  MessageAttachment.associate();
+  ConversationSummary.associate();
+  ConversationTag.associate();
+  ConversationArchive.associate();
+  AIUsageLog.associate();
+  AIKnowledge.associate();
+  AIEmbedding.associate();
+  AIKnowledgeSearchLog.associate();
+  ChatSession.associate();
+  ChatMessage.associate();
+  ChatTransfer.associate();
+  ChatQueue.associate();
+  ChatAttachment.associate();
+  Cart.associate();
+  CartItem.associate();
+  AISalesSession.associate();
+  AIRecommendationLog.associate();
+  AIActionLog.associate();
 };
 
 const db = {
@@ -121,11 +113,6 @@ const db = {
   ResetToken,
   LoginHistory,
   AuditLog,
-  RefundRequest,
-  Banner,
-  Voucher,
-  OrderVoucher,
-  InventoryReservation,
 };
 
 export default db;

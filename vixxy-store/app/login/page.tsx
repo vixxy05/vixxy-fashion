@@ -84,20 +84,33 @@ export default function LoginPage() {
         </div>
       }
     >
-      <div className="mb-6 space-y-3">
-            <div className="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700">
-              <p className="text-sm font-semibold text-neutral-900 dark:text-white mb-2">👤 Tài khoản khách hàng</p>
-              <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                <span className="font-medium">Tên:</span> Vixxy Nguyễn
-              </p>
-              <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                <span className="font-medium">Email:</span> user@vixxy.com
-              </p>
-              <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                <span className="font-medium">Mật khẩu:</span> user123
-              </p>
-            </div>
-          </div>
+      <div className="mb-6 grid gap-3 sm:grid-cols-2">
+        <div className="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700">
+          <p className="text-sm font-semibold text-neutral-900 dark:text-white mb-2">👤 Tài khoản khách hàng</p>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400">
+            <span className="font-medium">Tên:</span> Vixxy Nguyễn
+          </p>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400">
+            <span className="font-medium">Email:</span> user@vixxy.com
+          </p>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400">
+            <span className="font-medium">Mật khẩu:</span> user123
+          </p>
+        </div>
+
+        <div className="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700">
+          <p className="text-sm font-semibold text-neutral-900 dark:text-white mb-2">🔑 Tài khoản Admin</p>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400">
+            <span className="font-medium">Tên:</span> Quản trị viên
+          </p>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400">
+            <span className="font-medium">Email:</span> admin@vixxy.com
+          </p>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400">
+            <span className="font-medium">Mật khẩu:</span> admin123
+          </p>
+        </div>
+      </div>
       
       <form onSubmit={handleSubmit} className="space-y-6" data-form-type="other">
         <div className="space-y-2">

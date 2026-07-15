@@ -24,9 +24,9 @@ class Payment extends Model {
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
-  public static associate(models: any) {
-    this.belongsTo(models.Order, { foreignKey: "orderId", as: "order" });
-    this.belongsTo(models.PaymentGateway, { foreignKey: "gatewayId", as: "gateway" });
+  public static associate() {
+    this.belongsTo(Order, { foreignKey: "orderId", as: "order" });
+    this.belongsTo(PaymentGateway, { foreignKey: "gatewayId", as: "gateway" });
   }
 }
 

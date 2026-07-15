@@ -16,44 +16,63 @@ Sau do mo dung dia chi Terminal bao. Mac nen uu tien:
 http://127.0.0.1:3000
 ```
 
-## Chuc nang trong web chinh
+## Chức năng trong website chính
 
-- Trang chu: hero, trang phuc, trang suc, phu kien.
-- San pham: loc theo danh muc, tim kiem, sap xep gia.
-- Chi tiet san pham: chon size, them vao gio hang.
-- Gio hang: luu localStorage, cap nhat so luong theo tung size, xoa san pham, thanh toan demo.
-- Tai khoan: dang ky/dang nhap demo bang sessionStorage/localStorage.
-- Chat: giao dien ho tro, gui tin nhan, tao nhom, them thanh vien demo.
+- **Trang chủ:** Hero Banner dạng slideshow động, lấy dữ liệu cấu hình từ trang Admin; danh mục sản phẩm nổi bật.
+- **Sản phẩm:** Lọc theo danh mục, tìm kiếm, sắp xếp theo giá.
+- **Chi tiết sản phẩm:** Chọn size, số lượng, thêm vào giỏ hàng.
+- **Giỏ hàng:** Lưu trữ local, cập nhật số lượng theo từng size, thanh toán.
+- **Thanh toán (Checkout):** 
+  - Áp dụng mã giảm giá (Voucher) tự động tính toán số tiền giảm.
+  - Cơ chế **giữ chỗ tồn kho (Stock Hold)** tạm thời khi thanh toán để tránh tranh chấp kho.
+  - Tích hợp cổng thanh toán giả lập **QR Demo (SePay)**.
+- **Hủy & Khôi phục giao dịch (Rollback):** Tự động hoàn kho và trả lại Voucher nếu người dùng hủy thanh toán giữa chừng.
+- **Tài khoản:** 
+  - Khách hàng đăng ký/đăng nhập.
+  - Admin quản trị.
+- **Đơn hàng & Hoàn tiền (Refund):** Khách hàng xem lịch sử đơn hàng, yêu cầu hoàn tiền khi đơn hàng đã giao (`delivered`).
+- **Trang Admin (`/admin/dashboard`):**
+  - **Sản phẩm:** Quản lý danh sách, chỉnh sửa, thêm/xóa sản phẩm và tồn kho.
+  - **Đơn hàng:** Quản lý tất cả đơn hàng, duyệt/từ chối yêu cầu hoàn tiền kèm lý do từ chối.
+  - **Mã giảm giá:** Tạo mới voucher (giảm %, số tiền cố định), quản lý giới hạn sử dụng, khóa/mở khóa voucher.
+  - **Banner:** Thêm/xóa các banner tiếp thị hiển thị trực tiếp lên slide trang chủ.
 
-Tai khoan demo:
+Tài khoản Demo mặc định:
+- **Tài khoản Khách hàng:** `user@vixxy.com` / mật khẩu `user123`
+- **Tài khoản Admin:** `admin@vixxy.com` / mật khẩu `admin123`
 
-```text
-user@vixxy.com / user123
-```
+---
 
-## Cac thu muc/file cu
+## Cách chạy dự án cục bộ (Local Development)
 
-- `index.html`, `trang-phuc.html`, `login.html`, `register.html`: ban HTML thuan cu.
-- `js/`, `css/`: script/style cho ban HTML cu.
-- `novachat/`: ban demo Vite rieng.
-- `admin/`, `admin-dashboard/`: ban admin/demo rieng.
+1. Di chuyển vào thư mục dự án Next.js:
+   ```bash
+   cd vixxy-store
+   ```
+2. Cài đặt các thư viện (dependencies):
+   ```bash
+   npm install
+   ```
+3. Chạy môi trường phát triển:
+   ```bash
+   npm run dev
+   ```
+4. Mở trình duyệt theo địa chỉ: [http://localhost:3000](http://localhost:3000)
 
-Khuyen nghi: neu muon mot website thong nhat, tiep tuc phat trien trong `vixxy-store/`. Cac ban cu chi nen giu lam tham khao cho den khi ban chac chan muon xoa hoac luu tru.
+---
 
-## Kiem tra production
+## File nén phiên bản sạch (Clean Archive)
 
-```bash
-cd vixxy-store
-npm run build
-npm start
-```
+Phiên bản nén sạch của dự án đã được tạo tại tệp tin:
+👉 **[vixxy_ecommerce_project.zip](file:///c:/Users/Admin/OneDrive/Documents/năm%204/pro_vy/vixxy_ecommerce_project.zip)**
 
-Ghi chu: thanh toan va chat hien la demo frontend, chua ket noi server/database/cổng thanh toán thật.
+Tệp tin này đã được lọc bỏ hoàn toàn các thư mục nặng như `node_modules`, `.next`, `.vercel`, và các file cấu hình tạm thời khác để đảm bảo dung lượng tối ưu, phục vụ việc nộp bài hoặc lưu trữ.
+
+---
 
 ## Deploy Production
 
-Xem huong dan day du:
-
+Xem hướng dẫn đầy đủ:
 - [DEPLOY.md](DEPLOY.md)
 - [docs/PRODUCTION_GUIDE.md](docs/PRODUCTION_GUIDE.md)
 - [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md)

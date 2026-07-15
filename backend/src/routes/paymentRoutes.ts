@@ -10,7 +10,6 @@ router.get("/:id", PaymentController.getPayment);
 router.get("/history", PaymentController.getPaymentHistory);
 router.get("/logs/:paymentId", PaymentController.getPaymentLogs);
 router.post("/refund/:id", PaymentController.refundPayment);
-router.post("/failed/:id", PaymentController.handleFailedPaymentEndpoint);
 router.get("/dashboard/stats", PaymentController.getDashboardStats);
 
 // Payment gateway callbacks

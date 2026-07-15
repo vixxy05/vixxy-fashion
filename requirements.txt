@@ -1,0 +1,30 @@
+# ==============================================================================
+# PROJECT REQUIREMENTS & DEPENDENCY GUIDE
+# ==============================================================================
+# Note: This is a JavaScript / TypeScript (Next.js & Node.js) project.
+# It does not use Python. All package requirements and dependencies are managed
+# by npm using 'package.json' in their respective directories.
+# ==============================================================================
+
+Dependencies for each project component:
+
+1. NEXT.JS STOREFRONT (vixxy-store/)
+   - Requirements: package.json (vixxy-store/package.json)
+   - Major packages: next, react, react-dom, framer-motion, zustand, tailwindcss, typescript
+   - How to install:
+     $ cd vixxy-store
+     $ npm install
+
+2. EXPRESS BACKEND (backend/)
+   - Requirements: package.json (backend/package.json)
+   - Major packages: express, sequelize, mysql2, dotenv, cors, jsonwebtoken, bcryptjs, prisma
+   - How to install:
+     $ cd backend
+     $ npm install
+
+3. VITE ADMIN SPA (admin/)
+   - Requirements: package.json (admin/package.json)
+   - Major packages: react, react-dom, vite, lucide-react, tailwindcss
+   - How to install:
+     $ cd admin
+     $ npm install
