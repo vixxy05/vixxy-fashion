@@ -451,3 +451,37 @@ export const chatMessageAPI = {
   getHistory: (userId?: number) =>
     fetchAPI<{ success: boolean; sessions: any[] }>(`/chat-messages${userId ? `?userId=${userId}` : ''}`),
 };
+
+export const postsAPI = {
+  getAll: async () => {
+    const res = await fetch(`${API_BASE}/posts`);
+    return res.json();
+  },
+  getById: async (id: string | number) => {
+    const res = await fetch(`${API_BASE}/posts/${id}`);
+    return res.json();
+  },
+  create: async (data: any) => {
+    return fetchAPI('/posts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  update: async (id: string | number, data: any) => {
+    return fetchAPI(`/posts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  delete: async (id: string | number) => {
+    return fetchAPI(`/posts/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  getAllAdmin: async () => {
+    return fetchAPI('/posts');
+  },
+  getStats: async (id: string | number) => {
+    return fetchAPI(`/posts/${id}/stats`);
+  },
+};
