@@ -17,11 +17,24 @@ const STORAGE_KEY = "vixxy_products";
 const PRODUCTS_EVENT = "vixxy-products-updated";
 
 function normalizeProduct(product: Product): Product {
+  const sizes = product.sizes && product.sizes.length > 0 ? product.sizes : ["One Size"];
+  const sizeStock = { ...(product.sizeStock || {}) };
+  
+  sizes.forEach((s) => {
+    if (sizeStock[s] === undefined) {
+      sizeStock[s] = product.stockQuantity !== undefined ? Math.max(0, Math.floor(product.stockQuantity / sizes.length)) : 10;
+    }
+  });
+
+  const totalStock = Object.values(sizeStock).reduce((sum: number, val: any) => sum + Number(val || 0), 0);
+
   return {
     ...product,
     id: Number(product.id),
+    sizes,
+    sizeStock,
+    stockQuantity: totalStock,
     discountPrice: product.discountPrice ?? undefined,
-    stockQuantity: Number(product.stockQuantity ?? 0),
     price: Number(product.price ?? 0),
     updatedAt: product.updatedAt || new Date().toISOString(),
     createdAt: product.createdAt || new Date().toISOString(),

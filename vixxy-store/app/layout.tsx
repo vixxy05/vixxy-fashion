@@ -5,12 +5,17 @@ import {
   Inter,
   Playfair_Display,
 } from "next/font/google";
+import dynamic from "next/dynamic";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { ChatWidget } from "@/components/ChatWidget";
 import { Providers } from "@/components/Providers";
 import { env } from "@/lib/env";
 import "./globals.css";
+
+const ChatWidget = dynamic(
+  () => import("@/components/ChatWidget").then((mod) => mod.ChatWidget),
+  { ssr: false }
+);
 
 const playfair = Playfair_Display({
   subsets: ["latin", "vietnamese"],
@@ -64,19 +69,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Clear old storage keys for existing users
-  if (typeof window !== "undefined") {
-    const STORAGE_VERSION_KEY = "vixxy-storage-version";
-    const CURRENT_STORAGE_VERSION = 2;
-    const savedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
-    
-    if (!savedVersion || Number(savedVersion) < CURRENT_STORAGE_VERSION) {
-      // Clear old auth storage
-      localStorage.removeItem("vixxy-auth-storage");
-      // Also clear other old keys if needed
-      localStorage.setItem(STORAGE_VERSION_KEY, String(CURRENT_STORAGE_VERSION));
-    }
-  }
+
 
   return (
     <html

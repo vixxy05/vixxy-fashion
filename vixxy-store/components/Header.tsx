@@ -64,6 +64,9 @@ export function Header() {
     { href: "/products?category=accessories", label: "Phụ kiện" },
     { href: "/about", label: "Thông tin" },
     ...(user ? [{ href: "/orders", label: "Đơn hàng" }] : []),
+    ...(user && (user.role?.roleName === "ADMIN" || user.role?.roleName === "SUPER_ADMIN" || user.roleId === 2)
+      ? [{ href: "/admin/dashboard", label: "Quản trị" }]
+      : []),
   ];
 
   return (

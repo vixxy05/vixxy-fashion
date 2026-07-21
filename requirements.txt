@@ -10,7 +10,8 @@ Dependencies for each project component:
 
 1. NEXT.JS STOREFRONT (vixxy-store/)
    - Requirements: package.json (vixxy-store/package.json)
-   - Major packages: next, react, react-dom, framer-motion, zustand, tailwindcss, typescript
+   - Major packages: next, react, react-dom, framer-motion, zustand, tailwindcss,
+                     typescript, firebase
    - How to install:
      $ cd vixxy-store
      $ npm install
@@ -28,3 +29,44 @@ Dependencies for each project component:
    - How to install:
      $ cd admin
      $ npm install
+
+
+# ==============================================================================
+# EXTERNAL SERVICE REQUIRED: FIREBASE CLOUD FIRESTORE
+# ==============================================================================
+# The customer <-> admin live chat (vixxy-store/lib/chat.ts) syncs through the
+# Firestore collection `chats`. Without it, chat only works inside a single
+# browser via localStorage and admin never receives customer messages.
+#
+# Setup:
+#   1. Create/open a Firebase project, then enable Cloud Firestore
+#      (Native mode, database must be the default one named `(default)`).
+#
+#   2. Publish the security rules — REQUIRED, otherwise every read/write is
+#      rejected with `permission-denied`:
+#        $ npm i -g firebase-tools
+#        $ firebase login
+#        $ cd vixxy-store
+#        $ firebase deploy --only firestore:rules --project <your-project-id>
+#      (Rules file: vixxy-store/firestore.rules, config: vixxy-store/firebase.json)
+#      Alternatively paste firestore.rules into Firebase Console ->
+#      Firestore Database -> Rules -> Publish. Take care not to publish them
+#      to Realtime Database by mistake — a common cause of `permission-denied`.
+#
+#   3. Configure credentials via env vars in vixxy-store/.env.local (see
+#      vixxy-store/.env.example). Fallback values are hardcoded in
+#      vixxy-store/lib/firebase.ts, so the app still runs without them.
+#        NEXT_PUBLIC_FIREBASE_API_KEY
+#        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+#        NEXT_PUBLIC_FIREBASE_PROJECT_ID
+#        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+#        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+#        NEXT_PUBLIC_FIREBASE_APP_ID
+#
+# SECURITY NOTE: the app uses its own auth rather than Firebase Auth, so all
+# Firestore requests are unauthenticated and firestore.rules must leave the
+# `chats` collection publicly readable/writable. Anyone who reads the public
+# JS bundle can obtain the project id and access that collection. Do not store
+# sensitive data in chat messages. For production, move to Firebase Auth or
+# proxy the writes through the Express backend.
+# ==============================================================================

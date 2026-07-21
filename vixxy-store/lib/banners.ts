@@ -1,32 +1,38 @@
 import { Banner } from "./types";
 
-const BANNERS_KEY = "vixxy_banners";
+const BANNERS_KEY = "vixxy_banners_v4";
 const BANNERS_EVENT = "vixxy-banners-updated";
 
 const seedBanners: Banner[] = [
   {
     id: "1",
-    title: "VIXXY D'ORANCE",
+    title: "BỘ SƯU TẬP TRANG PHỤC",
     subtitle: "Thời trang nữ cao cấp — tối giản, thanh lịch, dành cho phụ nữ hiện đại.",
     image: "/images/nentrangchu.png",
-    link: "/products",
+    link: "/products?category=clothing",
     isActive: true,
+    imageFit: "cover",
+    imagePosition: "object-center",
   },
   {
     id: "2",
-    title: "Pearl Collection",
-    subtitle: "Ngọc trai và vàng hồng — vẻ đẹp tinh khiết vượt thời gian.",
+    title: "BỘ SƯU TẬP TRANG SỨC",
+    subtitle: "Trang sức ngọc trai & đá quý tinh xảo — tôn vinh vẻ đẹp kiêu sa, sang trọng.",
     image: "/images/Banner_Pearl.png",
     link: "/products?category=jewelry",
     isActive: true,
+    imageFit: "cover",
+    imagePosition: "object-center",
   },
   {
     id: "3",
-    title: "Accessories",
-    subtitle: "Phụ kiện cao cấp tinh xảo giúp hoàn thiện phong cách thời thượng của bạn.",
+    title: "BỘ SƯU TẬP PHỤ KIỆN",
+    subtitle: "Túi xách da yến, nón & phụ kiện cao cấp hoàn thiện phong cách thời thượng.",
     image: "/images/banner-accessories.png",
     link: "/products?category=accessories",
     isActive: true,
+    imageFit: "cover",
+    imagePosition: "object-center",
   }
 ];
 

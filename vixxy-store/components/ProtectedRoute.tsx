@@ -24,9 +24,8 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
   useEffect(() => {
     if (!loading && user && allowedRoles) {
-      const userRole = user.role?.roleName as UserRole;
+      const userRole = (user.role?.roleName || (user.roleId === 2 ? 'ADMIN' : 'CUSTOMER')) as UserRole;
       if (!allowedRoles.includes(userRole)) {
-        // Redirect to user's dashboard
         const dashboardPath = getDashboardPath(userRole);
         window.location.href = dashboardPath;
       }
@@ -35,8 +34,8 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="flex h-screen items-center justify-center bg-neutral-900 text-white">
+        <div className="text-sm font-semibold tracking-wider uppercase">Đang xác thực quyền...</div>
       </div>
     );
   }

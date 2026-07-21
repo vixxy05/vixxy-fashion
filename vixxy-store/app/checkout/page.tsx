@@ -66,7 +66,7 @@ export default function CheckoutPage() {
       setVoucherError("Vui lòng nhập mã giảm giá!");
       return;
     }
-    const result = validateVoucher(voucherCodeInput, selectedTotal);
+    const result = validateVoucher(voucherCodeInput, selectedTotal, selectedItems);
     if (!result.valid) {
       setVoucherError(result.message || "Mã không hợp lệ!");
       setAppliedVoucher(null);

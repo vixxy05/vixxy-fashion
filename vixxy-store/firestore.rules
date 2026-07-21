@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Collection `chats`: tin nhắn CSKH giữa khách hàng và admin.
+    //
+    // App dùng hệ thống auth riêng (không phải Firebase Auth), nên request tới
+    // Firestore luôn là unauthenticated. Vì vậy rules dưới đây mở read/write cho
+    // collection này, kèm validate cấu trúc document để hạn chế rác.
+    //
+    // CẢNH BÁO: bất kỳ ai biết projectId đều có thể đọc/ghi collection này.
+    // Không lưu thông tin nhạy cảm (số điện thoại, địa chỉ, mã đơn) trong text.
+    // Muốn siết chặt: xem phần "Nâng cấp bảo mật" trong README.
+    match /chats/{messageId} {
+      allow read: if true;
+
+      allow create, update: if
+        request.resource.data.keys().hasAll(
+          ['id', 'userEmail', 'userName', 'sender', 'text', 'timestamp']
+        )
+        && request.resource.data.sender in ['user', 'admin', 'bot']
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.userEmail is string
+        && request.resource.data.userEmail.size() <= 200;
+
+      // Không cho xoá tin nhắn từ client.
+      allow delete: if false;
+    }
+
+    // Mọi collection khác: chặn.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

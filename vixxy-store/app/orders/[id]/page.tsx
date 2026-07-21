@@ -26,6 +26,8 @@ export default function OrderDetailPage() {
   const [refundReasonInput, setRefundReasonInput] = useState("");
   const [refundError, setRefundError] = useState("");
 
+  const [showRetryPaymentModal, setShowRetryPaymentModal] = useState(false);
+
   useEffect(() => {
     setAuthChecked(true);
   }, []);
@@ -96,6 +98,28 @@ export default function OrderDetailPage() {
     setShowRefundModal(false);
     setRefundReasonInput("");
     setRefundError("");
+  };
+
+  const handleConfirmDelivered = () => {
+    if (!order) return;
+    if (confirm("Xác nhận đã giao/nhận hàng thành công cho đơn hàng này?")) {
+      const updatedOrder = updateOrder(order.id, { 
+        orderStatus: "delivered",
+        paymentStatus: "paid"
+      });
+      if (updatedOrder) setOrder(updatedOrder);
+    }
+  };
+
+  const handleSimulatePaymentSuccess = () => {
+    if (!order) return;
+    const updatedOrder = updateOrder(order.id, { 
+      orderStatus: "confirmed",
+      paymentStatus: "paid"
+    });
+    if (updatedOrder) setOrder(updatedOrder);
+    setShowRetryPaymentModal(false);
+    alert("✅ Thanh toán thành công! Đơn hàng của bạn đã được chuyển sang trạng thái Đã xác nhận.");
   };
 
   if (loading) {
@@ -195,27 +219,59 @@ export default function OrderDetailPage() {
                 </div>
               </div>
 
-              {order.cancelReason && (
-                <div className="mt-6 bg-neutral-50 p-4 rounded-lg text-sm">
+              {order.orderStatus === "refund_pending" && (
+                <div className="mt-6 bg-purple-50 text-purple-900 border border-purple-200 p-4 rounded-xl text-sm animate-pulse">
+                  <p className="font-bold flex items-center gap-2">⏳ Yêu cầu hoàn tiền đang chờ Admin xử lý</p>
+                  <p className="mt-1 text-xs text-purple-700">Lý do yêu cầu: {order.cancelReason || "Yêu cầu từ phía khách hàng"}</p>
+                </div>
+              )}
+
+              {order.orderStatus === "refunded" && (
+                <div className="mt-6 bg-green-50 text-green-900 border border-green-200 p-4 rounded-xl text-sm">
+                  <p className="font-bold flex items-center gap-2">✅ Đã hoàn tiền thành công</p>
+                  <p className="mt-1 text-xs text-green-700">Yêu cầu hoàn tiền của bạn đã được Admin phê duyệt thành công. Tiền đã được cập nhật hoàn về phương thức thanh toán.</p>
+                </div>
+              )}
+
+              {order.orderStatus === "refund_rejected" && (
+                <div className="mt-6 bg-red-50 text-red-900 border border-red-200 p-4 rounded-xl text-sm">
+                  <p className="font-bold flex items-center gap-2 text-red-700">❌ Hoàn tiền thất bại (Yêu cầu bị từ chối)</p>
+                  <p className="mt-1 text-xs text-red-800">Lý do từ chối từ Admin: <strong>{order.refundRejectReason || "Không đủ điều kiện hoàn tiền"}</strong></p>
+                </div>
+              )}
+
+              {order.cancelReason && order.orderStatus !== "refund_pending" && order.orderStatus !== "refunded" && order.orderStatus !== "refund_rejected" && (
+                <div className="mt-6 bg-neutral-50 p-4 rounded-lg text-sm border border-neutral-200">
                   <p className="font-semibold text-neutral-700">Lý do hủy/hoàn tiền:</p>
                   <p className="mt-1 text-neutral-600">{order.cancelReason}</p>
                 </div>
               )}
 
-              {order.refundRejectReason && (
-                <div className="mt-4 bg-red-50 text-red-800 p-4 rounded-lg text-sm border border-red-100">
-                  <p className="font-semibold">Lý do từ chối hoàn tiền:</p>
-                  <p className="mt-1">{order.refundRejectReason}</p>
-                </div>
-              )}
-
               <div className="mt-6 flex flex-wrap gap-4">
+                {(order.orderStatus === "payment_failed" || order.orderStatus === "paying" || order.paymentStatus === "pending") && order.orderStatus !== "cancelled" && (
+                  <button
+                    onClick={() => setShowRetryPaymentModal(true)}
+                    className="bg-indigo-600 text-white px-6 py-3 text-xs font-bold uppercase tracking-[0.18em] hover:bg-indigo-700 transition rounded-lg shadow-lg flex items-center gap-2 animate-bounce"
+                  >
+                    💳 Thanh toán lại (Quét mã QR)
+                  </button>
+                )}
+
                 {(order.orderStatus === "pending" || order.orderStatus === "confirmed") && (
                   <button
                     onClick={() => setShowCancelModal(true)}
                     className="border border-red-500 text-red-500 px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-red-50 transition rounded-lg"
                   >
                     Hủy đơn hàng
+                  </button>
+                )}
+
+                {order.orderStatus === "shipping" && (
+                  <button
+                    onClick={handleConfirmDelivered}
+                    className="bg-green-600 text-white px-6 py-3 text-xs font-bold uppercase tracking-[0.18em] hover:bg-green-700 transition rounded-lg shadow-md flex items-center gap-2"
+                  >
+                    ✅ Đã nhận được hàng (Xác nhận đã giao)
                   </button>
                 )}
 
@@ -298,6 +354,66 @@ export default function OrderDetailPage() {
                 className="bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-neutral-800"
               >
                 Gửi yêu cầu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Retry Payment Modal */}
+      {showRetryPaymentModal && order && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-neutral-200 flex flex-col items-center text-center">
+            <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xl mb-3">
+              💳
+            </div>
+            <h3 className="text-xl font-bold text-black">Thanh toán lại Đơn hàng #{order.id}</h3>
+            <p className="text-xs text-neutral-500 mt-1">Quét mã QR bằng ứng dụng ngân hàng hoặc ví điện tử để hoàn tất</p>
+
+            <div className="my-5 p-4 bg-neutral-50 border border-neutral-200 rounded-2xl flex flex-col items-center w-full">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(`PAYMENT FOR ORDER ${order.id} AMOUNT ${order.total} VND`)}`}
+                alt="QR Code Payment"
+                className="w-56 h-56 rounded-xl shadow-md border bg-white p-2"
+              />
+              <div className="mt-4 w-full text-xs space-y-1.5 text-left bg-white p-3 rounded-xl border border-neutral-200">
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Số tiền:</span>
+                  <span className="font-bold text-indigo-600">{order.total.toLocaleString("vi-VN")} VNĐ</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Ngân hàng / Ví:</span>
+                  <span className="font-semibold">{order.paymentMethod.toUpperCase()} (SePay / QR)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Số tài khoản:</span>
+                  <span className="font-mono font-bold">0900000000</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Chủ tài khoản:</span>
+                  <span className="font-semibold uppercase">VIXXY D'ORANCE SHOP</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Nội dung CK:</span>
+                  <span className="font-mono font-bold text-red-600">PAY {order.id}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2.5 w-full">
+              <button
+                type="button"
+                onClick={handleSimulatePaymentSuccess}
+                className="w-full bg-green-600 text-white py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-green-700 transition shadow-md flex items-center justify-center gap-2"
+              >
+                ⚡ Tôi đã chuyển khoản xong (Xác nhận ngay)
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowRetryPaymentModal(false)}
+                className="w-full border border-neutral-300 text-neutral-600 py-2.5 rounded-xl text-xs font-semibold hover:bg-neutral-50 transition"
+              >
+                Đóng / Thanh toán sau
               </button>
             </div>
           </div>

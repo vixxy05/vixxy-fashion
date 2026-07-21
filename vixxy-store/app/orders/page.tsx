@@ -101,7 +101,17 @@ export default function OrdersPage() {
                     <p className="text-sm text-neutral-600">Ngày đặt: {new Date(order.createdAt).toLocaleString("vi-VN")}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm"><span className="text-neutral-600">Trạng thái:</span> <span className="font-medium text-green-600">{formatOrderStatusText(order.orderStatus)}</span></p>
+                    <p className="text-sm">
+                      <span className="text-neutral-600">Trạng thái:</span>{" "}
+                      <span className={`font-semibold ${
+                        order.orderStatus === "refund_pending" ? "text-purple-600" :
+                        order.orderStatus === "refund_rejected" ? "text-red-600" :
+                        order.orderStatus === "cancelled" ? "text-red-600" :
+                        order.orderStatus === "delivered" || order.orderStatus === "refunded" ? "text-green-600" : "text-blue-600"
+                      }`}>
+                        {formatOrderStatusText(order.orderStatus)}
+                      </span>
+                    </p>
                     <p className="text-sm"><span className="text-neutral-600">Phương thức:</span> {formatPaymentMethodText(order.paymentMethod)}</p>
                   </div>
                 </div>

@@ -118,6 +118,7 @@ export interface Voucher {
   startDate: string;
   endDate: string;
   isActive: boolean;
+  applicableCategory?: "all" | Category;
 }
 
 export interface Banner {
@@ -127,4 +128,6 @@ export interface Banner {
   image: string;
   link: string;
   isActive: boolean;
+  imageFit?: "cover" | "contain";
+  imagePosition?: string;
 }

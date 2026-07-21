@@ -49,15 +49,29 @@ export function getOrderById(orderId: string): Order | null {
   return ordersArray.find((o: Order) => o.id === orderId) || null;
 }
 
-function adjustStock(productId: number, diff: number) {
+function adjustStock(productId: number, diff: number, size?: string) {
   if (typeof window === "undefined") return;
   try {
     const raw = localStorage.getItem("vixxy_products");
     if (raw) {
       const products = JSON.parse(raw);
       const nextProducts = products.map((p: any) => {
-        if (p.id === productId) {
-          return { ...p, stockQuantity: Math.max(0, (p.stockQuantity || 0) + diff) };
+        if (Number(p.id) === Number(productId)) {
+          const sizes = p.sizes || ["One Size"];
+          const sizeStock = { ...(p.sizeStock || {}) };
+          const targetSize = size || sizes[0] || "One Size";
+          
+          const currentSizeStock = sizeStock[targetSize] !== undefined ? Number(sizeStock[targetSize]) : Math.max(0, Math.floor(Number(p.stockQuantity || 0) / sizes.length));
+          const nextSizeStock = Math.max(0, currentSizeStock + diff);
+          sizeStock[targetSize] = nextSizeStock;
+          
+          const nextTotalStock = Object.values(sizeStock).reduce((sum: number, val: any) => sum + Number(val || 0), 0);
+
+          return { 
+            ...p, 
+            sizeStock,
+            stockQuantity: nextTotalStock 
+          };
         }
         return p;
       });
@@ -107,7 +121,7 @@ export function createOrder(data: {
   
   if (orderStatus === "paying" || orderStatus === "pending" || orderStatus === "confirmed") {
     order.items.forEach((item) => {
-      adjustStock(item.product.id, -item.quantity);
+      adjustStock(item.product.id, -item.quantity, item.size);
     });
   }
 
@@ -137,11 +151,11 @@ export function updateOrder(orderId: string, updates: Partial<Order>): Order | n
   
   if (isHoldingStock(oldOrder.orderStatus) && isReleasingStock(nextOrder.orderStatus)) {
     nextOrder.items.forEach((item) => {
-      adjustStock(item.product.id, item.quantity);
+      adjustStock(item.product.id, item.quantity, item.size);
     });
   } else if (isReleasingStock(oldOrder.orderStatus) && isHoldingStock(nextOrder.orderStatus)) {
     nextOrder.items.forEach((item) => {
-      adjustStock(item.product.id, -item.quantity);
+      adjustStock(item.product.id, -item.quantity, item.size);
     });
   }
 
@@ -152,20 +166,7 @@ export function updateOrder(orderId: string, updates: Partial<Order>): Order | n
 }
 
 export function simulateOrderProgress(orderId: string) {
-  const order = getOrderById(orderId);
-  if (!order) return;
-  
-  setTimeout(() => {
-    updateOrder(orderId, { orderStatus: "confirmed", paymentStatus: order.paymentMethod === "cod" ? "pending" : "paid" });
-  }, 2000);
-  
-  setTimeout(() => {
-    updateOrder(orderId, { orderStatus: "shipping", trackingCode: `GHTK${Date.now().toString().slice(-8)}`, shippingPartner: "GHTK" });
-  }, 5000);
-  
-  setTimeout(() => {
-    updateOrder(orderId, { orderStatus: "delivered", paymentStatus: order.paymentMethod === "cod" ? "paid" : "paid" });
-  }, 10000);
+  // Tắt tính năng tự động cập nhật để Admin thao tác thủ công trong trang quản trị
 }
 
 export function formatOrderStatusText(status: OrderStatus): string {

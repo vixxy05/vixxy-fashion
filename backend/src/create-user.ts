@@ -34,11 +34,6 @@ async function createTestUser() {
 
   console.log("User created!", user.toJSON());
 
-  // Now assign role via UserRole? Wait, do we have UserRole? Let's check models!
-  if (db.UserRole) {
-    await db.UserRole.create({ userId: user.id, roleId: role.id });
-  }
-
   return user;
 }
 

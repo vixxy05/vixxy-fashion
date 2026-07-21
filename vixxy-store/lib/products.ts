@@ -288,9 +288,9 @@ export const products: Product[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     category: "accessories",
-    image: "/images/got-sen-na-ha-thuy-tinh.png",
+    image: "/images/got-sen-nang-ha.png",
     images: [
-      "/images/got-sen-na-ha-thuy-tinh.png",
+      "/images/got-sen-nang-ha.png",
     ],
     details: [
       "Gót 10cm, có phần đệm êm.",
@@ -346,9 +346,9 @@ export const products: Product[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     category: "accessories",
-    image: "/images/mu-cai-thien-than-nho.png",
+    image: "/images/mu-cai-thien-than.png",
     images: [
-      "/images/mu-cai-thien-than-nho.png",
+      "/images/mu-cai-thien-than.png",
     ],
     details: [
       "Kích thước mini 15cm.",

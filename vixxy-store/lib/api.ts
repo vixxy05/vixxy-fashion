@@ -112,6 +112,10 @@ const localAuthAPI = {
       throw new Error('Email or password is incorrect');
     }
 
+    if (user.status === 'blocked') {
+      throw new Error('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên!');
+    }
+
     const updatedUser = { ...user, lastLoginAt: nowIso(), updatedAt: nowIso() };
     const users = getLocalUsers().map((item) => (item.id === user.id ? updatedUser : item));
     saveLocalUsers(users);

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npx vercel *)",
+      "Bash(curl -s -o /dev/null -w \"homepage: %{http_code}\\\\n\" https://vixxy-store.vercel.app)",
+      "Bash(curl -s -o /dev/null -w \"admin:    %{http_code}\\\\n\" https://vixxy-store.vercel.app/admin/dashboard)",
+      "Bash(git rm *)",
+      "Bash(rm -rf .next)",
+      "Bash(npx next *)",
+      "Bash(python -c ' *)",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

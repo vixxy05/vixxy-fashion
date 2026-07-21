@@ -21,11 +21,16 @@ export function AddToCartButton({
   const { user, redirectToLogin } = useAuth();
   const [added, setAdded] = useState(false);
 
+  const selectedSize = size || "One Size";
+  const sizeStock = product.sizeStock || {};
+  const isOutOfStock = sizeStock[selectedSize] !== undefined ? Number(sizeStock[selectedSize]) <= 0 : Number(product.stockQuantity || 0) <= 0;
+
   const handleClick = () => {
     if (!user) {
       redirectToLogin();
       return;
     }
+    if (isOutOfStock) return;
     for (let i = 0; i < quantity; i++) {
       addItem(product, size);
     }
@@ -36,11 +41,12 @@ export function AddToCartButton({
   return (
     <motion.button
       type="button"
-      whileTap={{ scale: 0.98 }}
+      whileTap={isOutOfStock ? {} : { scale: 0.98 }}
       onClick={handleClick}
-      className={`w-full bg-black px-6 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-neutral-800 disabled:opacity-70 ${className}`}
+      disabled={isOutOfStock}
+      className={`w-full bg-black px-6 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-neutral-800 disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed ${className}`}
     >
-      {added ? "Đã thêm vào giỏ" : "Thêm vào giỏ hàng"}
+      {isOutOfStock ? "Hết hàng" : added ? "Đã thêm vào giỏ" : "Thêm vào giỏ hàng"}
     </motion.button>
   );
 }

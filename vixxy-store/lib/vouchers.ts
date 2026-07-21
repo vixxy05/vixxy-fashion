@@ -1,5 +1,7 @@
 import { Voucher } from "./types";
 
+import { CartItem, Category } from "./types";
+
 const VOUCHERS_KEY = "vixxy_vouchers";
 const VOUCHERS_EVENT = "vixxy-vouchers-updated";
 
@@ -14,6 +16,7 @@ const seedVouchers: Voucher[] = [
     startDate: new Date().toISOString(),
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
     isActive: true,
+    applicableCategory: "all",
   },
   {
     code: "WELCOME50",
@@ -25,6 +28,7 @@ const seedVouchers: Voucher[] = [
     startDate: new Date().toISOString(),
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     isActive: true,
+    applicableCategory: "all",
   },
   {
     code: "SUPER99",
@@ -36,6 +40,7 @@ const seedVouchers: Voucher[] = [
     startDate: new Date().toISOString(),
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     isActive: true,
+    applicableCategory: "all",
   }
 ];
 
@@ -61,7 +66,7 @@ export function createVoucher(voucher: Voucher) {
   const vouchers = getVouchers();
   const index = vouchers.findIndex((v) => v.code.toUpperCase() === voucher.code.toUpperCase());
   if (index >= 0) {
-    vouchers[index] = voucher;
+    vouchers[index] = { ...vouchers[index], ...voucher };
   } else {
     vouchers.push(voucher);
   }
@@ -77,7 +82,7 @@ export function toggleVoucherStatus(code: string): boolean {
   return vouchers[index].isActive;
 }
 
-export function validateVoucher(code: string, orderValue: number): {
+export function validateVoucher(code: string, orderValue: number, cartItems: CartItem[] = []): {
   valid: boolean;
   discountAmount?: number;
   message?: string;
@@ -109,12 +114,30 @@ export function validateVoucher(code: string, orderValue: number): {
       message: `Đơn hàng tối thiểu phải từ ${voucher.minOrderValue.toLocaleString("vi-VN")}đ để áp dụng mã này!` 
     };
   }
+
+  let applicableValue = orderValue;
+  if (voucher.applicableCategory && voucher.applicableCategory !== "all") {
+    const matchedItems = cartItems.filter(
+      (item) => item.product.category === voucher.applicableCategory
+    );
+    if (matchedItems.length === 0) {
+      const catText = voucher.applicableCategory === "clothing" ? "Trang phục" : voucher.applicableCategory === "jewelry" ? "Trang sức" : "Phụ kiện";
+      return {
+        valid: false,
+        message: `Mã giảm giá này chỉ áp dụng đối với sản phẩm thuộc danh mục ${catText}!`,
+      };
+    }
+    applicableValue = matchedItems.reduce(
+      (sum, item) => sum + (item.product.discountPrice || item.product.price) * item.quantity,
+      0
+    );
+  }
   
   let discountAmount = 0;
   if (voucher.discountType === "percent") {
-    discountAmount = Math.floor((orderValue * voucher.discountValue) / 100);
+    discountAmount = Math.floor((applicableValue * voucher.discountValue) / 100);
   } else {
-    discountAmount = voucher.discountValue;
+    discountAmount = Math.min(applicableValue, voucher.discountValue);
   }
   
   return {

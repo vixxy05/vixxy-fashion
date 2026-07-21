@@ -2,6 +2,7 @@
 import { Request, Response } from "express";
 import db from "../models";
 import { Op } from "sequelize";
+import { emitToAll } from "../socket/socketServer";
 
 export const validateVoucher = async (req: Request, res: Response) => {
   try {
@@ -61,6 +62,7 @@ export const getAllVouchers = async (req: Request, res: Response) => {
 export const createVoucher = async (req: Request, res: Response) => {
   try {
     const voucher = await db.Voucher.create(req.body);
+    emitToAll("voucher:created", voucher);
     res.json({ success: true, data: voucher });
   } catch (error) {
     console.error("Create voucher error:", error);
@@ -75,6 +77,7 @@ export const updateVoucher = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: "Voucher not found" });
     }
     await voucher.update(req.body);
+    emitToAll("voucher:updated", voucher);
     res.json({ success: true, data: voucher });
   } catch (error) {
     console.error("Update voucher error:", error);
@@ -89,6 +92,7 @@ export const deleteVoucher = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: "Voucher not found" });
     }
     await voucher.destroy();
+    emitToAll("voucher:deleted", req.params.id);
     res.json({ success: true, message: "Voucher deleted successfully" });
   } catch (error) {
     console.error("Delete voucher error:", error);

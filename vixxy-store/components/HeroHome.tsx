@@ -42,14 +42,18 @@ export function HeroHome() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1.2, ease: "easeInOut" }}
-          className="absolute inset-0 h-full w-full"
+          className="absolute inset-0 h-full w-full bg-[#181514] flex items-center justify-center"
         >
           <img
             src={currentBanner.image}
             alt={currentBanner.title}
-            className="absolute inset-0 h-full w-full object-cover object-center"
+            className={`absolute inset-0 h-full w-full transition-all duration-700 ${
+              currentBanner.imageFit === "contain"
+                ? "object-contain bg-[#181514] p-4 md:p-8"
+                : "object-cover object-center"
+            }`}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/10" />
         </motion.div>
       </AnimatePresence>
 
