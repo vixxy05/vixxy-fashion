@@ -112,7 +112,7 @@ const localAuthAPI = {
       throw new Error('Email or password is incorrect');
     }
 
-    if (user.status === 'blocked') {
+    if (user.status === 'banned') {
       throw new Error('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên!');
     }
 
@@ -218,18 +218,31 @@ async function refreshAccessToken(): Promise<string> {
 async function fetchAPI<T>(
   endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem(TOKEN_KEY);
-  const headers: Record<string, string> = {
+  const normalizedHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
   };
 
+  if (options.headers) {
+    if (options.headers instanceof Headers) {
+      options.headers.forEach((value, key) => {
+        normalizedHeaders[key] = value;
+      });
+    } else if (Array.isArray(options.headers)) {
+      options.headers.forEach(([key, value]) => {
+        normalizedHeaders[key] = value;
+      });
+    } else {
+      Object.assign(normalizedHeaders, options.headers);
+    }
+  }
+
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    normalizedHeaders['Authorization'] = `Bearer ${token}`;
   }
 
   const response = await fetch(`${API_BASE}${endpoint}`, {
-    headers,
     ...options,
+    headers: normalizedHeaders,
   });
 
   if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh-token')) {
@@ -248,23 +261,26 @@ async function fetchAPI<T>(
     } else {
       return new Promise((resolve, reject) => {
         addRefreshSubscriber((token: string) => {
-          const newHeaders = { ...headers, Authorization: `Bearer ${token}` };
-          return fetch(`${API_BASE}${endpoint}`, {
+          const newHeaders = { ...normalizedHeaders, Authorization: `Bearer ${token}` };
+          fetch(`${API_BASE}${endpoint}`, {
             ...options,
             headers: newHeaders
-          }).then(resolve).catch(reject);
+          }).then(async (response) => {
+            const data = await response.json() as T;
+            resolve((data as any).data || data);
+          }).catch(reject);
         });
       });
     }
   }
 
-  const data = await response.json();
+  const data = await response.json() as T;
 
   if (!response.ok) {
-    throw new Error(data.message || `API Error: ${response.statusText}`);
+    throw new Error((data as any).message || `API Error: ${response.statusText}`);
   }
 
-  return data.data || data;
+  return (data as any).data || data;
 }
 
 function logout() {
@@ -483,5 +499,72 @@ export const postsAPI = {
   },
   getStats: async (id: string | number) => {
     return fetchAPI(`/posts/${id}/stats`);
+  },
+  like: async (id: string | number, userId: string | number) => {
+    return fetchAPI(`/posts/${id}/like`, {
+      method: 'POST',
+      body: JSON.stringify({ userId: String(userId) }),
+    });
+  },
+  unlike: async (id: string | number, userId: string | number) => {
+    return fetchAPI(`/posts/${id}/unlike`, {
+      method: 'POST',
+      body: JSON.stringify({ userId: String(userId) }),
+    });
+  },
+  getComments: async (id: string | number) => {
+    return fetchAPI(`/posts/${id}/comments`);
+  },
+  addComment: async (id: string | number, userId: string | number, content: string) => {
+    return fetchAPI(`/posts/${id}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ userId: String(userId), content }),
+    });
+  },
+  incrementView: async (id: string | number, userId?: string | number) => {
+    return fetchAPI(`/posts/${id}/view`, {
+      method: 'POST',
+      body: JSON.stringify({ userId: userId ? String(userId) : undefined }),
+    });
+  },
+  share: async (id: string | number, userId: string | number | undefined, platform: string) => {
+    return fetchAPI(`/posts/${id}/share`, {
+      method: 'POST',
+      body: JSON.stringify({ userId: userId ? String(userId) : undefined, platform }),
+    });
+  },
+};
+
+export const reviewsAPI = {
+  getByProduct: async (productId: number, options?: { page?: number; limit?: number; filter?: string; userId?: number | string }) => {
+    const params = new URLSearchParams();
+    if (options?.page) params.append('page', String(options.page));
+    if (options?.limit) params.append('limit', String(options.limit));
+    if (options?.filter) params.append('filter', options.filter);
+    if (options?.userId) params.append('userId', String(options.userId));
+    const queryString = params.toString();
+    return fetchAPI(`/reviews/product/${productId}${queryString ? `?${queryString}` : ''}`);
+  },
+  create: async (data: any) => {
+    return fetchAPI('/reviews', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  delete: async (id: number | string) => {
+    return fetchAPI(`/reviews/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  update: async (id: number | string, data: any) => {
+    return fetchAPI(`/reviews/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  like: async (id: number | string) => {
+    return fetchAPI(`/reviews/${id}/like`, {
+      method: 'POST',
+    });
   },
 };

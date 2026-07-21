@@ -70,7 +70,8 @@ function ReviewItem({
   onEdit?: (review: ReviewWithUser) => void;
   onDelete?: (review: ReviewWithUser) => void;
 }) {
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string | undefined) => {
+    if (!dateStr) return "";
     return new Date(dateStr).toLocaleDateString("vi-VN", {
       year: "numeric",
       month: "long",
@@ -243,7 +244,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
         page: 1,
         limit: 10,
         userId: user?.id,
-      });
+      }) as any;
       setReviews(response.data || []);
       setStats(response.stats || DEFAULT_STATS);
       setPermissions(response.permissions || DEFAULT_PERMISSIONS);
@@ -262,7 +263,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
         limit: 10,
         ...getQueryOptions(filter),
         userId: user?.id,
-      });
+      }) as any;
       setModalReviews(response.data || []);
       setModalPage(response.pagination?.page || page);
       setModalTotalPages(response.pagination?.totalPages || 1);

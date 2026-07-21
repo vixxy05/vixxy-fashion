@@ -26,9 +26,9 @@ export default function PostDetailPage() {
         postsAPI.getStats(params.id as string),
         postsAPI.getComments(params.id as string),
       ]);
-      setPost(postData);
-      setStats(statsData);
-      setComments(commentsData || []);
+      setPost(postData as any);
+      setStats(statsData as any);
+      setComments((commentsData as any[]) || []);
     } catch (error) {
       console.error('Failed to fetch post data:', error);
     } finally {

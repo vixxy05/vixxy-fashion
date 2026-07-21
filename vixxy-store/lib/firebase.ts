@@ -14,23 +14,22 @@ const firebaseConfig = {
 };
 
 
-export const hasFirebaseConfig =
-  !!firebaseConfig.apiKey &&
-  !!firebaseConfig.authDomain &&
-  !!firebaseConfig.projectId &&
-  !!firebaseConfig.appId;
+export function hasFirebaseConfig() {
+  return Boolean(
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+  );
+}
 
 
-let app:any = null;
+let app: any = null;
 
 
-if(hasFirebaseConfig){
-
+if (hasFirebaseConfig()) {
   app =
     getApps().length > 0
       ? getApp()
       : initializeApp(firebaseConfig);
-
 }
 
 

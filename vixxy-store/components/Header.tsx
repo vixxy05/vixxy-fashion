@@ -39,7 +39,7 @@ export function Header() {
     if (searchQuery.trim()) {
       const results = products.filter(product => 
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+        (product.description || "").toLowerCase().includes(searchQuery.toLowerCase())
       );
       setSearchResults(results);
     } else {

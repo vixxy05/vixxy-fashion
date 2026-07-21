@@ -17,7 +17,7 @@ export default function AdminMarketingPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const postsData = await postsAPI.getAllAdmin();
+        const postsData = await postsAPI.getAllAdmin() as any[];
         setPosts(postsData || []);
         
         const statsMap: Record<string, any> = {};

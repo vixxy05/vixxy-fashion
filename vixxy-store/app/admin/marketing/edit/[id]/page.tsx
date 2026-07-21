@@ -10,15 +10,24 @@ export default function EditPostPage() {
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    content: string;
+    thumbnail: string;
+    coverImage: string;
+    publicLink: string;
+    productId: string;
+    status: 'public' | 'private';
+    postType: 'user' | 'group';
+  }>({
     title: '',
     content: '',
     thumbnail: '',
     coverImage: '',
     publicLink: '',
     productId: '',
-    status: 'public' as const,
-    postType: 'user' as const,
+    status: 'public',
+    postType: 'user',
   });
   const [loading, setLoading] = useState(true);
 

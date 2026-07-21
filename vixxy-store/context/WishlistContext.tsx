@@ -13,24 +13,24 @@ import { products } from "@/lib/products";
 import { useAuth } from "./AuthContext";
 
 interface WishlistContextValue {
-  ids: string[];
+  ids: (string | number)[];
   items: Product[];
-  isFavorite: (id: string) => boolean;
+  isFavorite: (id: string | number) => boolean;
   toggle: (product: Product) => void;
-  remove: (id: string) => void;
+  remove: (id: string | number) => void;
   count: number;
 }
 
 const WishlistContext = createContext<WishlistContextValue | null>(null);
 
-function getWishlistStorageKey(userEmail: string | null) {
+function getWishlistStorageKey(userEmail: string | null | undefined) {
   if (!userEmail) return "vixxy_wishlist_guest";
   return `vixxy_wishlist_${userEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
 }
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [ids, setIds] = useState<string[]>([]);
+  const [ids, setIds] = useState<(string | number)[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   const storageKey = useMemo(() => getWishlistStorageKey(user?.email), [user?.email]);
@@ -51,7 +51,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(storageKey, JSON.stringify(ids));
   }, [ids, hydrated, storageKey]);
 
-  const isFavorite = useCallback((id: string) => ids.includes(id), [ids]);
+  const isFavorite = useCallback((id: string | number) => ids.includes(id), [ids]);
 
   const toggle = useCallback((product: Product) => {
     setIds((prev) =>
@@ -61,14 +61,14 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
-  const remove = useCallback((id: string) => {
+  const remove = useCallback((id: string | number) => {
     setIds((prev) => prev.filter((item) => item !== id));
   }, []);
 
   const items = useMemo(
     () =>
       ids
-        .map((id) => products.find((p) => p.id === id))
+        .map((id) => products.find((p) => p.id === Number(id)))
         .filter((product): product is Product => Boolean(product)),
     [ids]
   );

@@ -8,7 +8,7 @@ export interface Product {
   shortDescription?: string;
   sku: string;
   price: number;
-  discountPrice?: number;
+  discountPrice?: number | null;
   stockQuantity: number;
   isActive: boolean;
   isFeatured: boolean;
@@ -25,6 +25,37 @@ export interface Product {
   material?: string;
   care?: string;
   sizes?: string[];
+  sizeStock?: { [size: string]: number };
+}
+
+export type UserRole = "CUSTOMER" | "ADMIN" | "STAFF" | "SUPER_ADMIN";
+
+export interface Review {
+  id: number | string;
+  productId: number;
+  userId: number | string;
+  userName?: string;
+  rating: number;
+  comment: string;
+  images?: string[];
+  createdAt?: string;
+  isVerifiedBuyer?: boolean;
+  title?: string;
+  size?: string;
+  color?: string;
+  city?: string;
+  likesCount?: number;
+  helpfulCount?: number;
+  hasPurchased?: boolean;
+  reply?: string;
+  repliedAt?: string;
+  status?: string;
+}
+
+export interface ReviewStats {
+  averageRating: number;
+  totalReviews: number;
+  ratingCounts: Record<number, number>;
 }
 
 export interface CartItem {

@@ -16,11 +16,18 @@ export default function AccountPage() {
   const { count, total, items } = useCart();
   const { count: wishlistCount, items: wishlistItems } = useWishlist();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    fullName: string;
+    phone: string;
+    birthday: string;
+    gender: "male" | "female" | "other" | undefined;
+    address: string;
+    avatar: string;
+  }>({
     fullName: user?.fullName || "",
     phone: user?.phone || "",
     birthday: user?.birthday ? new Date(user.birthday).toISOString().split("T")[0] : "",
-    gender: user?.gender || "",
+    gender: user?.gender,
     address: user?.address || "",
     avatar: user?.avatar || "",
   });
@@ -33,7 +40,7 @@ export default function AccountPage() {
         fullName: user.fullName || "",
         phone: user.phone || "",
         birthday: user.birthday ? new Date(user.birthday).toISOString().split("T")[0] : "",
-        gender: user.gender || "",
+        gender: user.gender,
         address: user.address || "",
         avatar: user.avatar || "",
       });
@@ -91,7 +98,7 @@ export default function AccountPage() {
     try {
       await updateProfile({
         ...formData,
-        birthday: formData.birthday ? new Date(formData.birthday) : undefined,
+        birthday: formData.birthday || undefined,
       });
       setIsEditing(false);
       alert("Cập nhật hồ sơ thành công!");
@@ -136,7 +143,7 @@ export default function AccountPage() {
                   fullName: user?.fullName || "",
                   phone: user?.phone || "",
                   birthday: user?.birthday ? new Date(user.birthday).toISOString().split("T")[0] : "",
-                  gender: user?.gender || "",
+                  gender: user?.gender,
                   address: user?.address || "",
                   avatar: user?.avatar || "",
                 });
@@ -235,9 +242,12 @@ export default function AccountPage() {
                     Giới tính
                   </label>
                   <select
-                    value={formData.gender}
+                    value={formData.gender || ""}
                     onChange={(e) =>
-                      setFormData({ ...formData, gender: e.target.value as any })
+                      setFormData({ 
+                        ...formData, 
+                        gender: e.target.value === "" ? undefined : e.target.value as "male" | "female" | "other" 
+                      })
                     }
                     className="w-full border border-neutral-200 px-3 py-2 focus:outline-none focus:border-black"
                   >

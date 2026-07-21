@@ -62,7 +62,7 @@ export default function PaymentMockPage() {
       const res = await fetch(`${API_URL}/payments/mock-success`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: parseInt(orderId) }),
+        body: JSON.stringify({ orderId: parseInt(orderId as string) }),
       });
 
       if (res.ok) {

@@ -21,7 +21,7 @@ export default function ProductDetailPage() {
   const { user, redirectToLogin } = useAuth();
   const [size, setSize] = useState<string | undefined>(undefined);
   const [quantity, setQuantity] = useState(1);
-  const [activeImage, setActiveImage] = useState("");
+  const [activeImage, setActiveImage] = useState<string>("");
   
   // Reviews states
   const [reviews, setReviews] = useState<ProductReview[]>([]);
@@ -86,6 +86,17 @@ export default function ProductDetailPage() {
     setImageUrlInput("");
   };
 
+  if (!product) {
+    return (
+      <div className="mx-auto max-w-site px-4 py-24 text-center">
+        <p className="text-lg text-neutral-600">Không tìm thấy sản phẩm.</p>
+        <Link href="/products" className="mt-4 inline-block font-semibold underline">
+          ← Quay lại danh sách sản phẩm
+        </Link>
+      </div>
+    );
+  }
+
   const handleAddReviewSubmit = (e: any) => {
     e.preventDefault();
     if (!commentInput.trim()) return;
@@ -110,17 +121,6 @@ export default function ProductDetailPage() {
     alert("Cảm ơn bạn đã viết đánh giá cho sản phẩm!");
   };
 
-  if (!product) {
-    return (
-      <div className="mx-auto max-w-site px-4 py-24 text-center">
-        <p className="text-lg text-neutral-600">Không tìm thấy sản phẩm.</p>
-        <Link href="/products" className="mt-4 inline-block font-semibold underline">
-          ← Quay lại danh sách sản phẩm
-        </Link>
-      </div>
-    );
-  }
-
   const handleToggleWishlist = () => {
     if (!user) {
       redirectToLogin();
@@ -133,7 +133,7 @@ export default function ProductDetailPage() {
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4);
   const gallery = Array.from(new Set([product.image, ...(product.images ?? [])]));
-  const selectedImage = activeImage || product.image;
+  const selectedImage = activeImage || product.image || "";
   const favorite = isFavorite(product.id);
 
   return (
@@ -168,7 +168,7 @@ export default function ProductDetailPage() {
                 <button
                   key={image}
                   type="button"
-                  onClick={() => setActiveImage(image)}
+                  onClick={() => setActiveImage(image || "")}
                   className={`relative aspect-square overflow-hidden border-2 rounded-lg bg-neutral-100 transition-all ${
                     selectedImage === image
                       ? "border-black ring-2 ring-black/20"

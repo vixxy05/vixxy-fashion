@@ -29,11 +29,11 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-export function cartItemKey(productId: string, size?: string) {
+export function cartItemKey(productId: string | number, size?: string) {
   return `${productId}::${size ?? "default"}`;
 }
 
-function getCartStorageKey(userEmail: string | null) {
+function getCartStorageKey(userEmail: string | null | undefined) {
   if (!userEmail) return "vixxy_cart_guest";
   return `vixxy_cart_${userEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
 }
